@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cat Band Card Battle Reboot</title>
+    <link rel="stylesheet" href="style.css?v=stage3-bgm" />
+  </head>
+  <body>
+    <main class="app">
+      <section id="titleScreen" class="screen active">
+        <div class="title-stage">
+          <p class="eyebrow">Tiny Roguelike Card Battle</p>
+          <h1>Cat Band<br />Card Battle<br />Reboot</h1>
+          <p class="lead">
+            Energyを使って手札からカードを演奏。Chorusの切りどころと報酬選択で、Neon Void Idol撃破を目指そう。
+          </p>
+          <button id="startButton" class="primary-button">ステージ選択へ</button>
+          <div class="volume-panel" aria-label="音量設定">
+            <label class="volume-control" for="bgmVolume">
+              <span>BGM Volume <strong id="bgmVolumeValue">30%</strong></span>
+              <input id="bgmVolume" type="range" min="0" max="100" value="30" />
+            </label>
+            <label class="volume-control" for="seVolume">
+              <span>SE Volume <strong id="seVolumeValue">60%</strong></span>
+              <input id="seVolume" type="range" min="0" max="100" value="60" />
+            </label>
+          </div>
+        </div>
+        <div class="guide">
+          <h2>遊び方</h2>
+          <p>毎ターンEnergyは3、手札は5枚。カードを使い、ターン終了で敵が行動します。</p>
+          <p>Chorusが100になったら、リーダー固有の必殺演奏を好きなタイミングで発動できます。</p>
+        </div>
+      </section>
+
+      <section id="stageSelectScreen" class="screen">
+        <header class="page-head">
+          <p class="eyebrow">Stage Select</p>
+          <h2>STAGE SELECT</h2>
+          <p>Clear a boss to unlock the next live stage.</p>
+        </header>
+        <div id="stageList" class="stage-list"></div>
+      </section>
+
+      <section id="leaderScreen" class="screen">
+        <header class="page-head">
+          <p class="eyebrow">Band Leader</p>
+          <h2>リーダー猫を選ぶ</h2>
+          <p>初期デッキとChorusが変わります。</p>
+        </header>
+        <div id="leaderList" class="leader-list"></div>
+      </section>
+
+      <section id="battleScreen" class="screen battle-screen">
+        <header class="enemy-area">
+          <div class="enemy-line">
+            <div class="enemy-emoji" id="enemyEmoji">🐭</div>
+            <div>
+              <p id="encounterLabel" class="eyebrow">Battle 1</p>
+              <h2 id="enemyName">Noise Rat</h2>
+            </div>
+          </div>
+          <div class="banner-frame enemy-banner-frame">
+            <img id="enemyBannerImage" class="battle-banner-image" alt="" />
+          </div>
+          <div class="enemy-info-panel">
+            <div class="hp-row">
+              <span id="enemyHpText">35 / 35</span>
+              <div class="bar enemy-bar"><span id="enemyHpBar"></span></div>
+            </div>
+            <div class="intent" id="enemyIntent">⚔️ 6ダメージ</div>
+            <div class="enemy-status" id="enemyStatus"></div>
+          </div>
+        </header>
+
+        <section class="player-area">
+          <div class="player-main">
+            <div class="leader-badge" id="playerEmoji">🐱🎤</div>
+            <div class="player-summary">
+              <h3 id="playerName">ハチワレVo</h3>
+            </div>
+            <button id="leaderInfoButton" class="leader-info-button" type="button" aria-label="リーダー情報を表示">ⓘ</button>
+          </div>
+          <div class="banner-frame player-banner-frame">
+            <img id="playerBannerImage" class="battle-banner-image" alt="" />
+          </div>
+          <div class="player-info-panel">
+            <div class="chips">
+              <span class="hp-chip">❤️ <strong id="playerHpText">70 / 70</strong></span>
+              <span class="block-chip"><strong id="blockText">0</strong></span>
+              <span class="energy-chip">⚡ <strong id="energyText">3 / 3</strong></span>
+            </div>
+            <div class="chorus-wrap">
+              <div class="chorus-top">
+                <span>Chorus</span>
+                <strong id="chorusText">0 / 100</strong>
+              </div>
+              <div class="bar chorus-bar"><span id="chorusBar"></span></div>
+              <button id="chorusButton" class="chorus-button" disabled>Chorus</button>
+            </div>
+            <div id="playerStatus" class="player-status"></div>
+          </div>
+          <div id="relicStrip" class="relic-strip"></div>
+          <div id="relicDetail" class="relic-detail" hidden></div>
+          <div id="leaderInfoPopup" class="leader-info-popup" hidden></div>
+        </section>
+
+        <section class="log-box">
+          <p id="battleLog">手札からカードを選んで演奏しよう。</p>
+        </section>
+
+        <div id="chorusOverlay" class="chorus-overlay" aria-hidden="true">
+          <div class="chorus-stage">
+            <div class="chorus-fx fx-a"></div>
+            <div class="chorus-fx fx-b"></div>
+            <strong id="chorusOverlayTitle">🎤 CHORUS!!</strong>
+            <span id="chorusOverlaySkill">Crowd Singalong!</span>
+          </div>
+        </div>
+
+        <section class="hand-area">
+          <div id="hand" class="hand hand-cards"></div>
+          <span id="pileText">Deck 0 / Discard 0</span>
+        </section>
+      </section>
+
+      <section id="cardRewardScreen" class="screen">
+        <header class="page-head">
+          <p class="eyebrow">Card Reward</p>
+          <h2>カードを1枚追加</h2>
+          <p>次の戦闘からデッキに入ります。</p>
+        </header>
+        <div id="cardRewardList" class="reward-list"></div>
+      </section>
+
+      <section id="relicRewardScreen" class="screen">
+        <header class="page-head">
+          <p class="eyebrow">Relic Reward</p>
+          <h2>レリック獲得</h2>
+          <p>中ボス撃破のごほうびです。</p>
+        </header>
+        <div id="relicReward" class="relic-reward"></div>
+      </section>
+
+      <section id="battleVictoryScreen" class="screen">
+        <div class="result-card battle-victory-card">
+          <p class="eyebrow">Live Clear</p>
+          <h2 id="battleVictoryTitle">Victory!</h2>
+          <p id="battleVictoryText">ライブ成功！次のステージへ進もう。</p>
+          <button id="battleVictoryButton" class="primary-button">次へ</button>
+        </div>
+      </section>
+
+      <section id="resultScreen" class="screen">
+        <div class="result-card">
+          <p id="resultBadge" class="eyebrow">Result</p>
+          <h2 id="resultTitle">Victory</h2>
+          <p id="resultText"></p>
+          <div id="runSummary" class="summary"></div>
+          <button id="restartButton" class="primary-button">もう一度プレイ</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="main.js?v=stage3-bgm"></script>
+  </body>
+</html>
