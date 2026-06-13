@@ -481,8 +481,8 @@ h3 {
 }
 
 .battle-screen {
-  gap: 7px;
-  padding-bottom: 8px;
+  gap: 5px;
+  padding-bottom: 5px;
 }
 
 .enemy-area {
@@ -493,7 +493,7 @@ h3 {
   overflow: hidden;
   height: auto;
   min-height: 0;
-  padding: 7px;
+  padding: 5px;
   border: 3px solid var(--ink);
   background: #150d25;
   box-shadow: var(--shadow);
@@ -537,11 +537,11 @@ h3 {
 }
 
 .enemy-banner-frame {
-  height: clamp(104px, 17vh, 140px);
+  height: clamp(96px, 15.5vh, 128px);
 }
 
 .player-banner-frame {
-  height: clamp(118px, 18vh, 152px);
+  height: clamp(108px, 16.5vh, 140px);
 }
 
 .battle-banner-image {
@@ -748,8 +748,8 @@ h3 {
 .enemy-info-panel,
 .player-info-panel {
   display: grid;
-  gap: 5px;
-  padding: 6px;
+  gap: 3px;
+  padding: 4px;
   border: 2px solid rgba(255, 255, 255, 0.42);
   border-radius: 8px;
   background: rgba(255, 252, 240, 0.9);
@@ -764,7 +764,7 @@ h3 {
 .hp-row > span {
   flex: 0 0 auto;
   min-width: 44px;
-  padding: 3px 7px;
+  padding: 2px 6px;
   border: 2px solid var(--ink);
   border-radius: 999px;
   color: var(--ink);
@@ -773,7 +773,7 @@ h3 {
 }
 
 .enemy-area .bar {
-  height: 12px;
+  height: 10px;
   border-color: var(--ink);
   background: rgba(255, 255, 255, 0.84);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.42);
@@ -785,13 +785,14 @@ h3 {
   justify-content: center;
   gap: 6px;
   margin-top: 0;
-  padding: 5px 8px;
+  min-height: 24px;
+  padding: 3px 7px;
   border: 2px solid var(--ink);
   border-radius: 8px;
   color: var(--ink);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 246, 220, 0.94));
-  font-size: clamp(0.78rem, 3.3vw, 0.94rem);
+  font-size: clamp(0.72rem, 3vw, 0.86rem);
   font-weight: 850;
   line-height: 1.2;
   box-shadow: none;
@@ -814,8 +815,8 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 19px;
-  padding: 2px 7px;
+  min-height: 17px;
+  padding: 1px 6px;
   border: 2px solid rgba(37, 25, 46, 0.86);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.92);
@@ -884,12 +885,12 @@ h3 {
   position: relative;
   display: grid;
   grid-template-rows: auto auto auto;
-  gap: 6px;
+  gap: 4px;
   overflow: hidden;
   min-height: 0;
   height: auto;
   max-height: none;
-  padding: 7px 7px 34px;
+  padding: 5px 5px 26px;
   border: 3px solid var(--ink);
   background: linear-gradient(120deg, #1d1530, #55316d 55%, #1a7080);
 }
@@ -950,8 +951,8 @@ h3 {
   align-self: end;
   color: var(--ink);
   background: rgba(255, 252, 240, 0.9);
-  gap: 4px;
-  padding: 5px 6px;
+  gap: 3px;
+  padding: 4px 5px;
 }
 
 .chips {
@@ -959,7 +960,7 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  min-height: 26px;
+  min-height: 21px;
 }
 
 .chips span {
@@ -968,15 +969,15 @@ h3 {
   justify-content: center;
   flex: 1 1 0;
   min-width: 0;
-  min-height: 24px;
-  padding: 2px 6px;
+  min-height: 20px;
+  padding: 1px 5px;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.68);
   border: 1px solid rgba(197, 177, 123, 0.72);
   border-radius: 999px;
   text-align: center;
   box-shadow: none;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -984,7 +985,7 @@ h3 {
 
 .chips strong {
   color: var(--ink);
-  margin-left: 3px;
+  margin-left: 2px;
 }
 
 .chips .block-chip::before {
@@ -1006,10 +1007,10 @@ h3 {
   display: grid;
   place-items: center;
   gap: 2px;
-  width: 100%;
-  min-height: 24px;
+  width: auto;
+  min-height: 22px;
   margin-top: 1px;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-color: rgba(48, 38, 52, 0.92);
   font-size: 0.78rem;
   font-weight: 950;
@@ -1020,19 +1021,48 @@ h3 {
 
 .player-info-panel .chorus-top {
   color: var(--ink);
-  font-size: 0.72rem;
+  font-size: 0;
   line-height: 1;
   text-shadow: none;
 }
 
 .player-info-panel .chorus-wrap {
   display: grid;
-  gap: 2px;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 30%);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 5px;
+  row-gap: 1px;
 }
 
 .player-info-panel .bar {
-  height: 8px;
+  height: 7px;
   border-width: 1px;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.player-info-panel .chorus-top {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.player-info-panel .chorus-top span {
+  font-size: 0;
+}
+
+.player-info-panel .chorus-top span::before {
+  content: "🎤";
+  font-size: 0.68rem;
+}
+
+.player-info-panel .chorus-top strong {
+  font-size: 0.68rem;
+}
+
+.player-info-panel .chorus-button {
+  grid-column: 2;
+  grid-row: 2;
 }
 
 .player-info-panel .status-chip {
@@ -1440,7 +1470,7 @@ body.boss-gimmick-shake .app {
 .log-box {
   order: 3;
   min-height: 0;
-  padding: 8px 10px;
+  padding: 5px 8px;
   background: #fff;
 }
 
@@ -1448,18 +1478,18 @@ body.boss-gimmick-shake .app {
   display: -webkit-box;
   overflow: hidden;
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 780;
-  line-height: 1.25;
+  line-height: 1.16;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
 }
 
 .hand-area {
   order: 4;
   position: relative;
   flex: 0 0 auto;
-  padding: 6px 6px 18px;
+  padding: 5px 5px 14px;
   overflow-x: hidden;
 }
 
@@ -1467,7 +1497,7 @@ body.boss-gimmick-shake .app {
 .hand-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: 5px;
   overflow: hidden;
   padding: 0;
 }
@@ -2255,12 +2285,12 @@ body.boss-gimmick-shake .app {
 
 @media (max-height: 760px) {
   .app {
-    padding: 6px;
+    padding: 4px;
   }
 
   .screen.active {
-    min-height: calc(100vh - 12px);
-    gap: 5px;
+    min-height: calc(100vh - 8px);
+    gap: 4px;
   }
 
   .guide,
@@ -2273,22 +2303,22 @@ body.boss-gimmick-shake .app {
   }
 
   .battle-screen {
-    gap: 5px;
-    padding-bottom: 4px;
+    gap: 4px;
+    padding-bottom: 3px;
   }
 
   .enemy-area {
     height: auto;
-    padding: 5px;
+    padding: 4px;
     border-width: 2px;
   }
 
   .enemy-banner-frame {
-    height: clamp(92px, 15vh, 118px);
+    height: clamp(84px, 13.5vh, 108px);
   }
 
   .player-banner-frame {
-    height: clamp(104px, 16vh, 132px);
+    height: clamp(96px, 14.5vh, 118px);
   }
 
   .enemy-emoji {
@@ -2320,13 +2350,13 @@ body.boss-gimmick-shake .app {
 
   .enemy-info-panel,
   .player-info-panel {
-    gap: 3px;
-    padding: 4px;
+    gap: 2px;
+    padding: 3px;
     border-width: 1px;
   }
 
   .enemy-area .bar {
-    height: 10px;
+    height: 8px;
   }
 
   .hp-row > span {
@@ -2336,27 +2366,28 @@ body.boss-gimmick-shake .app {
   }
 
   .intent {
-    padding: 3px 6px;
-    font-size: 0.7rem;
+    min-height: 21px;
+    padding: 2px 5px;
+    font-size: 0.66rem;
   }
 
   .enemy-status,
   .player-status {
-    min-height: 16px;
-    margin-top: 2px;
+    min-height: 14px;
+    margin-top: 0;
   }
 
   .status-chip {
-    min-height: 16px;
-    padding: 1px 6px;
-    font-size: 0.6rem;
+    min-height: 14px;
+    padding: 1px 5px;
+    font-size: 0.54rem;
   }
 
   .player-area {
     height: auto;
     max-height: none;
-    gap: 4px;
-    padding: 6px 6px 30px;
+    gap: 3px;
+    padding: 4px 4px 24px;
     border-width: 2px;
   }
 
@@ -2378,17 +2409,27 @@ body.boss-gimmick-shake .app {
   }
 
   .chips span {
-    min-height: 22px;
-    padding: 2px 5px;
-    font-size: 0.62rem;
+    min-height: 18px;
+    padding: 1px 4px;
+    font-size: 0.58rem;
   }
 
   .chips strong {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
   }
 
   .player-area .chorus-top {
-    font-size: 0.64rem;
+    font-size: 0;
+  }
+
+  .player-info-panel .chorus-wrap {
+    grid-template-columns: minmax(0, 1fr) minmax(80px, 28%);
+    column-gap: 4px;
+  }
+
+  .player-info-panel .chorus-top strong,
+  .player-info-panel .chorus-top span::before {
+    font-size: 0.6rem;
   }
 
   .bar {
@@ -2396,30 +2437,30 @@ body.boss-gimmick-shake .app {
   }
 
   .chorus-button {
-    min-height: 22px;
+    min-height: 19px;
     margin-top: 1px;
-    padding: 2px 6px;
+    padding: 1px 5px;
   }
 
   .chorus-ready-label {
-    font-size: 0.52rem;
+    font-size: 0.46rem;
   }
 
   .chorus-skill-name {
-    font-size: 0.76rem;
+    font-size: 0.66rem;
   }
 
   .relic-strip {
-    left: 6px;
+    left: 5px;
     right: 38px;
-    bottom: 5px;
-    min-height: 22px;
+    bottom: 4px;
+    min-height: 18px;
   }
 
   .player-area .relic-chip {
     max-width: 128px;
-    padding: 3px 6px;
-    font-size: 0.62rem;
+    padding: 2px 5px;
+    font-size: 0.56rem;
   }
 
   .relic-detail {
@@ -2430,14 +2471,18 @@ body.boss-gimmick-shake .app {
     padding: 15px;
   }
 
+  .log-box {
+    padding: 4px 6px;
+  }
+
   .log-box p {
-    font-size: 0.74rem;
-    line-height: 1.18;
+    font-size: 0.68rem;
+    line-height: 1.12;
     -webkit-line-clamp: 1;
   }
 
   .hand-area {
-    padding: 5px 5px 16px;
+    padding: 4px 4px 12px;
   }
 
   .hand,
