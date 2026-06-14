@@ -1446,6 +1446,7 @@ function startEncounter() {
   state.pendingBlackout = false;
   state.pendingHiddenCardCount = 0;
   state.pendingTremorPenalty = 0;
+  state.skipEnemyActionThisTurn = false;
   state.turn = 1;
   state.cardsPlayedThisTurn = 0;
   state.drawPile = shuffle(state.masterDeck);
@@ -1719,7 +1720,9 @@ function endTurn() {
     return;
   }
   tickPlayerWeak();
-  const enemyMessage = [voidMessage, bassMessage, enemyAct()].filter(Boolean).join(" / ");
+  const actionMessage = state.skipEnemyActionThisTurn ? "" : enemyAct();
+  state.skipEnemyActionThisTurn = false;
+  const enemyMessage = [voidMessage, bassMessage, actionMessage].filter(Boolean).join(" / ");
   if (state.hp <= 0) {
     loseRun();
     return;
@@ -1940,6 +1943,7 @@ function reduceBassPressure(amount) {
 function triggerBassCrush() {
   state.enemy.bassPressure = 1;
   state.enemy.warningBassCrush = false;
+  state.skipEnemyActionThisTurn = true;
   const shattered = state.block;
   state.block = 0;
   loseHp(12, false);
@@ -1947,7 +1951,7 @@ function triggerBassCrush() {
   playBossEffect("bassCrush", "BASS CRUSH");
   playEffect("damage", "player", { amount: 12, label: "BASS CRUSH", duration: 620 });
   bump(els.blockText);
-  return `Soundhole Leviathan unleashed Bass Crush! Block shattered ${shattered} / 12 damage`;
+  return `Soundhole Leviathan unleashed Bass Crush! Block shattered ${shattered} / 12 damage / The Leviathan focuses on building pressure...`;
 }
 
 function queueHiddenCards(count) {
