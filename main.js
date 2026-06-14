@@ -74,14 +74,14 @@ const LEADERS = [
     passiveName: "Deep Resonance",
     passiveDescription: "Weak付与ターン+1",
     chorusName: "Bass Drop",
-    chorusDescription: "18ダメージ / Weak付与",
+    chorusDescription: "18ダメージ / Weak 4",
     chorusIcon: "🎵",
     chorusTheme: "bass",
     deck: ["bassHit", "bassHit", "bassHit", "bassHit", "lowGroove", "lowGroove", "guardBeat", "guardBeat", "scratch", "scratch"],
     chorus() {
       dealDamage(18);
-      weakenEnemy(3);
-      log("Bass Drop! 18ダメージ、敵Attack -3。");
+      const weakResult = applyEnemyWeak(4);
+      log(`Bass Drop: 18ダメージ / ${weakResult.changed ? `Weak ${weakResult.value}` : "Weak維持"}`);
     },
   },
   {
@@ -1838,9 +1838,9 @@ function applyShieldCrush(amount) {
 
 function addBassPressure(amount, message = "Bass Pressure +1") {
   if (!state.enemy) return message;
-  state.enemy.bassPressure = Math.min(5, (state.enemy.bassPressure || 0) + (amount || 0));
+  state.enemy.bassPressure = Math.min(6, (state.enemy.bassPressure || 0) + (amount || 0));
   playEffect("debuff", "enemy", { amount: state.enemy.bassPressure, label: "BASS", duration: 420 });
-  if (state.enemy.gimmick === "bassLeviathan" && state.enemy.bassPressure >= 5) {
+  if (state.enemy.gimmick === "bassLeviathan" && state.enemy.bassPressure >= 6) {
     return `${message} / ${triggerBassCrush()}`;
   }
   return message;
@@ -1856,7 +1856,7 @@ function reduceBassPressure(amount) {
 }
 
 function triggerBassCrush() {
-  state.enemy.bassPressure = 2;
+  state.enemy.bassPressure = 1;
   const shattered = state.block;
   state.block = 0;
   loseHp(12, false);
@@ -2041,7 +2041,7 @@ function bossIntentNote() {
     return `🌊 Next Tremor: ${turns}`;
   }
   if (state.enemy.gimmick === "bassLeviathan") {
-    return `🔊 Bass Pressure ${state.enemy.bassPressure || 0}/5`;
+    return `🔊 Bass Pressure ${state.enemy.bassPressure || 0}/6`;
   }
   return "";
 }
@@ -2084,17 +2084,17 @@ function bossStatusBadges() {
   if (state.enemy.gimmick === "tremorDjinn") {
     const turns = Math.max(1, ((2 - state.enemy.actionIndex + state.enemy.actions.length) % state.enemy.actions.length) + 1);
     const chips = [`<span class="status-chip status-boss">🌊 Next Tremor: ${turns}</span>`];
-    if ((state.enemy.bassPressure || 0) > 0) chips.push(`<span class="status-chip status-boss">🔊 Bass Pressure ${state.enemy.bassPressure}/5</span>`);
+    if ((state.enemy.bassPressure || 0) > 0) chips.push(`<span class="status-chip status-boss">🔊 Bass Pressure ${state.enemy.bassPressure}/6</span>`);
     return chips;
   }
   if (state.enemy.gimmick === "bassLeviathan") {
     const pressure = state.enemy.bassPressure || 0;
-    const chips = [`<span class="status-chip status-boss ${pressure >= 4 ? "status-boss-danger" : ""}">🔊 Bass Pressure ${pressure}/5</span>`];
+    const chips = [`<span class="status-chip status-boss ${pressure >= 5 ? "status-boss-danger" : ""}">🔊 Bass Pressure ${pressure}/6</span>`];
     if (state.enemy.phase2Triggered) chips.push(`<span class="status-chip status-boss-danger">Abyss Resonance</span>`);
     return chips;
   }
   if ((state.enemy.bassPressure || 0) > 0) {
-    return [`<span class="status-chip status-boss">🔊 Bass Pressure ${state.enemy.bassPressure}/5</span>`];
+    return [`<span class="status-chip status-boss">🔊 Bass Pressure ${state.enemy.bassPressure}/6</span>`];
   }
   return [];
 }
