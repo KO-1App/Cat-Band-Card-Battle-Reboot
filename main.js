@@ -1434,6 +1434,7 @@ function startEncounter() {
     voidPressure: 0,
     voidShieldTriggered: false,
     bassPressure: 0,
+    warningBassCrush: false,
     tremorCounter: 0,
     bassHalfCounter: 0,
   };
@@ -1916,7 +1917,9 @@ function addBassPressure(amount, message = "Bass Pressure +1") {
   state.enemy.bassPressure = Math.min(6, (state.enemy.bassPressure || 0) + (amount || 0));
   playEffect("debuff", "enemy", { amount: state.enemy.bassPressure, label: "BASS", duration: 420 });
   if (state.enemy.gimmick === "bassLeviathan" && state.enemy.bassPressure >= 6) {
-    return `${message} / ${triggerBassCrush()}`;
+    state.enemy.warningBassCrush = true;
+    playBossEffect("bassCrush", "WARNING");
+    return `${message} / WARNING! Bass Crush Incoming!`;
   }
   return message;
 }
@@ -1927,11 +1930,16 @@ function reduceBassPressure(amount) {
   state.enemy.bassPressure = Math.max(0, before - amount);
   if (before === state.enemy.bassPressure) return "";
   playEffect("heal", "player", { amount: before - state.enemy.bassPressure, label: "BASS", duration: 420 });
+  if (state.enemy.warningBassCrush && state.enemy.bassPressure < 6) {
+    state.enemy.warningBassCrush = false;
+    return "Chorus pushed back the bass pressure! / Bass Crush prevented!";
+  }
   return "Chorus pushed back the bass pressure!";
 }
 
 function triggerBassCrush() {
   state.enemy.bassPressure = 1;
+  state.enemy.warningBassCrush = false;
   const shattered = state.block;
   state.block = 0;
   loseHp(12, false);
@@ -1974,6 +1982,7 @@ function handleVoidPressureOnEndTurn() {
 
 function handleBassPressureOnEndTurn() {
   if (state.enemy?.gimmick !== "bassLeviathan") return "";
+  if (state.enemy.warningBassCrush) return triggerBassCrush();
   return addBassPressure(1, "Bass Pressure +1: turn end");
 }
 
@@ -2116,6 +2125,7 @@ function bossIntentNote() {
     return `🌊 Next Tremor: ${turns}`;
   }
   if (state.enemy.gimmick === "bassLeviathan") {
+    if (state.enemy.warningBassCrush) return "⚠ Bass Crush Incoming";
     return `🔊 Bass Pressure ${state.enemy.bassPressure || 0}/6`;
   }
   return "";
@@ -2182,6 +2192,7 @@ function renderStatusBadges(entity) {
       state.enemy?.weak > 0 ? `<span class="status-chip status-weak">💀 Weak ${state.enemy.weak}</span>` : "",
       bonusAttack > 0 ? `<span class="status-chip status-attack-up">⚡ Attack +${bonusAttack}</span>` : "",
       bonusAttack < 0 ? `<span class="status-chip status-attack-down">📉 Attack ${bonusAttack}</span>` : "",
+      state.enemy?.warningBassCrush ? `<span class="status-chip status-boss-danger">⚠ Bass Crush Incoming</span>` : "",
       ...bossStatusBadges(),
     ].filter(Boolean).join("");
   }
