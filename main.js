@@ -417,7 +417,7 @@ const ENEMIES = {
       { type: "bassPressure", amount: 1 },
       { type: "multiAttack", amount: 12, hits: 2 },
       { type: "buff", amount: 3 },
-      { type: "attack", amount: 28 },
+      { type: "attack", amount: 22 },
     ],
   },
   resonanceMonk: {
@@ -429,7 +429,7 @@ const ENEMIES = {
       { type: "block", amount: 18 },
       { type: "bassPressure", amount: 1 },
       { type: "attack", amount: 16 },
-      { type: "chorusDown", amount: 15 },
+      { type: "chorusDown", amount: 8 },
       { type: "blockBuff", block: 22, buff: 2 },
     ],
   },
@@ -437,7 +437,7 @@ const ENEMIES = {
     name: "Speaker Kraken",
     emoji: "🐙",
     enemyType: "elite",
-    hp: 120,
+    hp: 95,
     actions: [
       { type: "multiAttack", amount: 6, hits: 4 },
       { type: "shieldCrushAttack", crush: 10, amount: 16 },
@@ -465,7 +465,7 @@ const ENEMIES = {
     name: "Soundhole Leviathan",
     emoji: "🐋",
     enemyType: "boss",
-    hp: 170,
+    hp: 145,
     gimmick: "bassLeviathan",
     actions: [
       { type: "attack", amount: 18 },
@@ -2466,10 +2466,10 @@ function triggerDeepTremor() {
 
 function triggerAbyssResonance() {
   state.enemy.phase2Triggered = true;
-  state.enemy.bonusAttack += 3;
+  state.enemy.bonusAttack += 2;
   const pressureLog = addBassPressure(2, "Bass Pressure +2");
   playBossEffect("bassCrush", "ABYSS RESONANCE");
-  log(`Abyss Resonance! The hall begins to collapse under the bass! / Attack +3 / ${pressureLog}`);
+  log(`Abyss Resonance! The hall begins to collapse under the bass! / Attack +2 / ${pressureLog}`);
 }
 
 function winBattle() {
