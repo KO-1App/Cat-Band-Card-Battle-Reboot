@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cat Band Card Battle Reboot</title>
-    <link rel="stylesheet" href="style.css?v=stage3-balance" />
+    <link rel="stylesheet" href="style.css?v=ja-localize" />
   </head>
   <body>
     <main class="app">
       <section id="titleScreen" class="screen active">
         <div class="title-stage">
-          <p class="eyebrow">Tiny Roguelike Card Battle</p>
+          <p class="eyebrow">小型ローグライクカードバトル</p>
           <h1>Cat Band<br />Card Battle<br />Reboot</h1>
           <p class="lead">
             Energyを使って手札からカードを演奏。Chorusの切りどころと報酬選択で、Neon Void Idol撃破を目指そう。
@@ -18,11 +18,11 @@
           <button id="startButton" class="primary-button">ステージ選択へ</button>
           <div class="volume-panel" aria-label="音量設定">
             <label class="volume-control" for="bgmVolume">
-              <span>BGM Volume <strong id="bgmVolumeValue">30%</strong></span>
+              <span>BGM音量 <strong id="bgmVolumeValue">30%</strong></span>
               <input id="bgmVolume" type="range" min="0" max="100" value="30" />
             </label>
             <label class="volume-control" for="seVolume">
-              <span>SE Volume <strong id="seVolumeValue">60%</strong></span>
+              <span>SE音量 <strong id="seVolumeValue">60%</strong></span>
               <input id="seVolume" type="range" min="0" max="100" value="60" />
             </label>
           </div>
@@ -36,16 +36,16 @@
 
       <section id="stageSelectScreen" class="screen">
         <header class="page-head">
-          <p class="eyebrow">Stage Select</p>
-          <h2>STAGE SELECT</h2>
-          <p>Clear a boss to unlock the next live stage.</p>
+          <p class="eyebrow">ステージ選択</p>
+          <h2>ステージ選択</h2>
+          <p>ボスを倒すと次のライブステージが解放されます。</p>
         </header>
         <div id="stageList" class="stage-list"></div>
       </section>
 
       <section id="leaderScreen" class="screen">
         <header class="page-head">
-          <p class="eyebrow">Band Leader</p>
+          <p class="eyebrow">リーダー選択</p>
           <h2>リーダー猫を選ぶ</h2>
           <p>初期デッキとChorusが変わります。</p>
         </header>
@@ -53,6 +53,7 @@
       </section>
 
       <section id="battleScreen" class="screen battle-screen">
+        <div id="tourHeader" class="tour-battle-header" hidden></div>
         <header class="enemy-area">
           <div class="enemy-line">
             <div class="enemy-emoji" id="enemyEmoji">🐭</div>
@@ -69,7 +70,7 @@
               <span id="enemyHpText">35 / 35</span>
               <div class="bar enemy-bar"><span id="enemyHpBar"></span></div>
             </div>
-            <div class="intent" id="enemyIntent">⚔️ 6ダメージ</div>
+            <div class="intent" id="enemyIntent">⚔️ 攻撃 6</div>
             <div class="enemy-status" id="enemyStatus"></div>
           </div>
         </header>
@@ -88,7 +89,7 @@
           <div class="player-info-panel">
             <div class="chips">
               <span class="hp-chip">❤️ <strong id="playerHpText">70 / 70</strong></span>
-              <span class="block-chip"><strong id="blockText">0</strong></span>
+              <span class="block-chip">🛡 <strong id="blockText">0</strong></span>
               <span class="energy-chip">⚡ <strong id="energyText">3 / 3</strong></span>
             </div>
             <div class="chorus-wrap">
@@ -121,22 +122,22 @@
 
         <section class="hand-area">
           <div id="hand" class="hand hand-cards"></div>
-          <span id="pileText">Deck 0 / Discard 0</span>
+          <span id="pileText">山札 0 / 捨て札 0</span>
         </section>
       </section>
 
       <section id="cardRewardScreen" class="screen">
         <header class="page-head">
-          <p class="eyebrow">Card Reward</p>
+          <p class="eyebrow">カード報酬</p>
           <h2>カードを1枚追加</h2>
-          <p>次の戦闘からデッキに入ります。</p>
+          <p>選んだカードが次の戦闘からデッキに入ります。</p>
         </header>
         <div id="cardRewardList" class="reward-list"></div>
       </section>
 
       <section id="relicRewardScreen" class="screen">
         <header class="page-head">
-          <p class="eyebrow">Relic Reward</p>
+          <p class="eyebrow">レリック報酬</p>
           <h2>レリック獲得</h2>
           <p>中ボス撃破のごほうびです。</p>
         </header>
@@ -145,25 +146,25 @@
 
       <section id="battleVictoryScreen" class="screen">
         <div class="result-card battle-victory-card">
-          <p class="eyebrow">Live Clear</p>
-          <h2 id="battleVictoryTitle">Victory!</h2>
-          <p id="battleVictoryText">ライブ成功！次のステージへ進もう。</p>
+          <p class="eyebrow">ライブ成功</p>
+          <h2 id="battleVictoryTitle">勝利！</h2>
+          <p id="battleVictoryText">ライブ成功！次へ進もう。</p>
           <button id="battleVictoryButton" class="primary-button">次へ</button>
         </div>
       </section>
 
       <section id="resultScreen" class="screen">
         <div class="result-card">
-          <p id="resultBadge" class="eyebrow">Result</p>
-          <h2 id="resultTitle">Victory</h2>
+          <p id="resultBadge" class="eyebrow">リザルト</p>
+          <h2 id="resultTitle">勝利</h2>
           <p id="resultText"></p>
           <div id="runSummary" class="summary"></div>
           <div id="resultActions" class="result-actions"></div>
-          <button id="restartButton" class="primary-button">もう一度プレイ</button>
+          <button id="restartButton" class="primary-button">タイトルへ戻る</button>
         </div>
       </section>
     </main>
 
-    <script src="main.js?v=tour-mode"></script>
+    <script src="main.js?v=ja-localize"></script>
   </body>
 </html>

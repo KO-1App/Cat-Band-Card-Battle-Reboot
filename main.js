@@ -70,29 +70,29 @@ const LEADERS = [
     id: "ba",
     name: "白猫Ba",
     emoji: "🐾🎵",
-    trait: "Weak付与が得意。Weak効果 +1ターン。",
+    trait: "弱体付与が得意。弱体効果 +1ターン。",
     passiveName: "Deep Resonance",
-    passiveDescription: "Weak付与ターン+1",
+    passiveDescription: "弱体付与ターン+1",
     chorusName: "Bass Drop",
-    chorusDescription: "18ダメージ / Weak 4",
+    chorusDescription: "18ダメージ / 弱体 4",
     chorusIcon: "🎵",
     chorusTheme: "bass",
     deck: ["bassHit", "bassHit", "bassHit", "bassHit", "lowGroove", "lowGroove", "guardBeat", "guardBeat", "scratch", "scratch"],
     chorus() {
       dealDamage(18);
       const weakResult = applyEnemyWeak(4);
-      log(`Bass Drop: 18ダメージ / ${weakResult.changed ? `Weak ${weakResult.value}` : "Weak維持"}`);
+      log(`Bass Drop: 18ダメージ / ${weakResult.changed ? `弱体 ${weakResult.value}` : "弱体維持"}`);
     },
   },
   {
     id: "dr",
     name: "茶トラDr",
     emoji: "🐈🥁",
-    trait: "防御が得意。BlockカードのBlock +2。",
+    trait: "防御が得意。ブロックカードのブロック +2。",
     passiveName: "Iron Rhythm",
-    passiveDescription: "BlockカードのBlock+2",
+    passiveDescription: "ブロックカードのブロック+2",
     chorusName: "Drum Break",
-    chorusDescription: "Block+18 / 2ドロー",
+    chorusDescription: "ブロック+18 / 2ドロー",
     chorusIcon: "🥁",
     chorusTheme: "drum",
     deck: ["drumHit", "drumHit", "drumHit", "drumHit", "guardBeat", "guardBeat", "guardBeat", "tempoUp", "scratch", "scratch"],
@@ -100,8 +100,8 @@ const LEADERS = [
       gainBlock(18);
       const drawn = drawCards(2);
       log(drawn < 2
-        ? "Drum Break! Block +18。手札がいっぱいでドローできない。"
-        : "Drum Break! Block +18、2ドロー。");
+        ? "Drum Break! ブロック +18。手札がいっぱいでドローできない。"
+        : "Drum Break! ブロック +18、2ドロー。");
     },
   },
 ];
@@ -128,7 +128,7 @@ const STAGES = [
     id: "neon_city",
     number: 1,
     name: "Neon City",
-    description: "A bright neon live street where the first tour begins.",
+    description: "まぶしいネオンが輝く、最初のライブ街。",
     unlockRequirement: null,
     boss: "Neon Void Idol",
     bgm: { normal: "neonNormal", elite: "neonNormal", midboss: "neonMiniboss", miniboss: "neonMiniboss", boss: "neonBoss" },
@@ -139,7 +139,7 @@ const STAGES = [
     id: "blackout_warehouse",
     number: 2,
     name: "Blackout Warehouse",
-    description: "A risky warehouse venue where the lights keep dropping.",
+    description: "照明が落ちる危険な倉庫ライブ会場。",
     unlockRequirement: "neon_city",
     boss: "Warehouse Light Eater",
     bgm: { normal: "blackoutNormal", elite: "blackoutNormal", midboss: "blackoutMiniboss", miniboss: "blackoutMiniboss", boss: "blackoutBoss" },
@@ -156,7 +156,7 @@ const STAGES = [
     id: "abyss_bass_hall",
     number: 3,
     name: "Abyss Bass Hall",
-    description: "A deep underground hall built around impossible bass.",
+    description: "重低音が物理攻撃になる地下ホール。",
     unlockRequirement: "blackout_warehouse",
     boss: "Soundhole Leviathan",
     bgm: { normal: "abyssNormal", elite: "abyssNormal", midboss: "abyssMiniboss", miniboss: "abyssMiniboss", boss: "abyssBoss" },
@@ -531,31 +531,31 @@ const RARITIES = {
 const REWARD_POOL = Object.keys(CARD_LIBRARY).filter((id) => id !== "scratch");
 
 const RELICS = [
-  { id: "tinyAmp", name: "Tiny Amplifier", emoji: "📣", text: "Battle start: Chorus +20." },
-  { id: "stickerGuitar", name: "Sticker Covered Guitar", emoji: "🎸", text: "ATTACK cards deal +1 damage." },
-  { id: "catnipDrink", name: "Catnip Drink", emoji: "🥤", text: "Battle start: heal 5 HP." },
-  { id: "brokenMetronome", name: "Broken Metronome", emoji: "⏱️", text: "Every 3 turns: Chorus +10." },
-  { id: "luckyPick", name: "Lucky Pick", emoji: "🔺", text: "GUITAR cards deal +2 damage." },
-  { id: "vintageBassCabinet", name: "Vintage Bass Cabinet", emoji: "🎛️", text: "BASS cards: Chorus +4." },
-  { id: "customMic", name: "Custom Mic", emoji: "🎤", text: "VOCAL cards gain Chorus +5." },
-  { id: "heavyDrumPedal", name: "Heavy Drum Pedal", emoji: "🦶", text: "DRUM cards gain Block +3." },
-  { id: "crowdBanner", name: "Crowd Banner", emoji: "🚩", text: "CROWD cards: heal 1 HP." },
-  { id: "noiseFilter", name: "Noise Filter", emoji: "🎚️", text: "NOISE cards that apply Weak add +1 turn." },
-  { id: "fangedPickups", name: "Fanged Pickups", emoji: "🦷", text: "ATTACK cards deal +2 damage." },
-  { id: "velvetEarplugs", name: "Velvet Earplugs", emoji: "🟣", text: "DEBUFF cards apply Weak +1 turn." },
-  { id: "harmonyRosette", name: "Harmony Rosette", emoji: "🌸", text: "CHORUS cards gain Chorus +6." },
-  { id: "blueStageJacket", name: "Blue Stage Jacket", emoji: "🧥", text: "DEFENSE cards gain Block +3." },
-  { id: "vocalHoney", name: "Vocal Warmup Honey", emoji: "🍯", text: "VOCAL cards heal 1 HP." },
-  { id: "feedbackLoop", name: "Guitar Feedback Loop", emoji: "〽️", text: "GUITAR cards: damage +1 and Chorus +2." },
-  { id: "basslineAnchor", name: "Bassline Anchor", emoji: "⚓", text: "BASS cards: Block +2 and Weak +1 turn." },
-  { id: "drumlineShoes", name: "Drumline Shoes", emoji: "👟", text: "DRUM cards: Block +2 and Chorus +2." },
-  { id: "crowdWristbands", name: "Crowd Wristbands", emoji: "🎟️", text: "CROWD cards gain Chorus +3." },
-  { id: "staticCharm", name: "Static Charm", emoji: "⚡", text: "NOISE cards: damage +3 and Weak +1 turn." },
-  { id: "spotlightLens", name: "Spotlight Lens", emoji: "🔦", text: "DRAW cards gain Chorus +5." },
-  { id: "safetyHarness", name: "Safety Harness", emoji: "🪢", text: "RISK cards take 2 less recoil." },
-  { id: "pyroPermit", name: "Pyro Permit", emoji: "🔥", text: "RISK cards deal +6 damage but recoil +1." },
-  { id: "tagMixer", name: "Tag Mixer", emoji: "🎚️", text: "Cards with 2+ tags gain Chorus +3." },
-  { id: "tripleEncorePatch", name: "Triple Encore Patch", emoji: "🔺", text: "Cards with 3+ tags gain damage +3 and Block +3." },
+  { id: "tinyAmp", name: "Tiny Amplifier", emoji: "📣", text: "戦闘開始時、Chorus +20。" },
+  { id: "stickerGuitar", name: "Sticker Covered Guitar", emoji: "🎸", text: "ATTACKカードのダメージ +1。" },
+  { id: "catnipDrink", name: "Catnip Drink", emoji: "🥤", text: "戦闘開始時、HPを5回復。" },
+  { id: "brokenMetronome", name: "Broken Metronome", emoji: "⏱️", text: "3ターンごとにChorus +10。" },
+  { id: "luckyPick", name: "Lucky Pick", emoji: "🔺", text: "GUITARカードのダメージ +2。" },
+  { id: "vintageBassCabinet", name: "Vintage Bass Cabinet", emoji: "🎛️", text: "BASSカード使用時、Chorus +4。" },
+  { id: "customMic", name: "Custom Mic", emoji: "🎤", text: "VOCALカードで得るChorus +5。" },
+  { id: "heavyDrumPedal", name: "Heavy Drum Pedal", emoji: "🦶", text: "DRUMカードで得るブロック +3。" },
+  { id: "crowdBanner", name: "Crowd Banner", emoji: "🚩", text: "CROWDカード使用時、HPを1回復。" },
+  { id: "noiseFilter", name: "Noise Filter", emoji: "🎚️", text: "NOISEカードが付与する弱体 +1ターン。" },
+  { id: "fangedPickups", name: "Fanged Pickups", emoji: "🦷", text: "ATTACKカードのダメージ +2。" },
+  { id: "velvetEarplugs", name: "Velvet Earplugs", emoji: "🟣", text: "DEBUFFカードが付与する弱体 +1ターン。" },
+  { id: "harmonyRosette", name: "Harmony Rosette", emoji: "🌸", text: "CHORUSカードで得るChorus +6。" },
+  { id: "blueStageJacket", name: "Blue Stage Jacket", emoji: "🧥", text: "DEFENSEカードで得るブロック +3。" },
+  { id: "vocalHoney", name: "Vocal Warmup Honey", emoji: "🍯", text: "VOCALカード使用時、HPを1回復。" },
+  { id: "feedbackLoop", name: "Guitar Feedback Loop", emoji: "〽️", text: "GUITARカードのダメージ +1、Chorus +2。" },
+  { id: "basslineAnchor", name: "Bassline Anchor", emoji: "⚓", text: "BASSカードのブロック +2、弱体 +1ターン。" },
+  { id: "drumlineShoes", name: "Drumline Shoes", emoji: "👟", text: "DRUMカードのブロック +2、Chorus +2。" },
+  { id: "crowdWristbands", name: "Crowd Wristbands", emoji: "🎟️", text: "CROWDカードで得るChorus +3。" },
+  { id: "staticCharm", name: "Static Charm", emoji: "⚡", text: "NOISEカードのダメージ +3、弱体 +1ターン。" },
+  { id: "spotlightLens", name: "Spotlight Lens", emoji: "🔦", text: "DRAWカードで得るChorus +5。" },
+  { id: "safetyHarness", name: "Safety Harness", emoji: "🪢", text: "RISKカードの反動ダメージ -2。" },
+  { id: "pyroPermit", name: "Pyro Permit", emoji: "🔥", text: "RISKカードのダメージ +6、反動 +1。" },
+  { id: "tagMixer", name: "Tag Mixer", emoji: "🎚️", text: "タグを2個以上持つカードはChorus +3。" },
+  { id: "tripleEncorePatch", name: "Triple Encore Patch", emoji: "🔺", text: "タグを3個以上持つカードはダメージ +3、ブロック +3。" },
 ];
 
 const SE_PATHS = {
@@ -704,6 +704,7 @@ const els = {
   restartButton: document.querySelector("#restartButton"),
   stageList: document.querySelector("#stageList"),
   leaderList: document.querySelector("#leaderList"),
+  tourHeader: document.querySelector("#tourHeader"),
   enemyArea: document.querySelector(".enemy-area"),
   enemyBannerImage: document.querySelector("#enemyBannerImage"),
   enemyEmoji: document.querySelector("#enemyEmoji"),
@@ -864,19 +865,19 @@ function renderStageSelect() {
     const playable = unlocked && stage.playable;
     const requirement = stage.unlockRequirement ? stageById(stage.unlockRequirement).name : null;
     const status = !unlocked
-      ? `LOCKED${requirement ? ` - Clear ${requirement}` : ""}`
+      ? `未解放${requirement ? ` - ${requirement}クリアで解放` : ""}`
       : stage.playable
-        ? "UNLOCKED"
-        : "COMING SOON";
-    const action = playable ? "PLAY" : stage.playable ? "LOCKED" : "COMING SOON";
+        ? "解放済み"
+        : "近日追加";
+    const action = playable ? "開始" : stage.playable ? "未解放" : "近日追加";
     return `
       <article class="stage-card ${unlocked ? "unlocked" : "locked"} ${stage.playable ? "" : "coming-soon"}">
         <div>
-          <p class="eyebrow">Stage ${stage.number}</p>
+          <p class="eyebrow">ステージ ${stage.number}</p>
           <h3>${stage.name}</h3>
           <p>${stage.description}</p>
           <span class="stage-status">${status}</span>
-          <span class="stage-boss">Boss: ${stage.boss}</span>
+          <span class="stage-boss">ボス: ${stage.boss}</span>
         </div>
         <button class="primary-button stage-play-button" type="button" data-stage="${stage.id}" ${playable ? "" : "disabled"}>
           ${action}
@@ -884,16 +885,16 @@ function renderStageSelect() {
       </article>
     `;
   }).join("");
-  const tourStatus = state.tourUnlocked ? "UNLOCKED" : "LOCKED - Clear Abyss Bass Hall";
-  const tourAction = state.tourUnlocked ? "PLAY" : "LOCKED";
+  const tourStatus = state.tourUnlocked ? "解放済み" : "未解放 - Abyss Bass Hallクリアで解放";
+  const tourAction = state.tourUnlocked ? "開始" : "未解放";
   const tourCard = `
     <article class="stage-card tour-card ${state.tourUnlocked ? "unlocked" : "locked"}">
       <div>
-        <p class="eyebrow">Special Mode</p>
+        <p class="eyebrow">特殊モード</p>
         <h3>Tour Mode</h3>
-        <p>Stage 1〜Stage 3をデッキ、HP、レリック引き継ぎで連続攻略。</p>
+        <p>Stage 1〜Stage 3を、デッキ・HP・レリック引き継ぎで連続攻略。</p>
         <span class="stage-status">${tourStatus}</span>
-        <span class="stage-boss">Total: 15 Battles</span>
+        <span class="stage-boss">全15戦</span>
       </div>
       <button class="primary-button stage-play-button" type="button" data-tour="true" ${state.tourUnlocked ? "" : "disabled"}>
         ${tourAction}
@@ -902,11 +903,11 @@ function renderStageSelect() {
   `;
   els.stageList.innerHTML = `
     <div class="stage-section">
-      <h3 class="stage-section-title">Normal Stages</h3>
+      <h3 class="stage-section-title">通常ステージ</h3>
       ${normalStages}
     </div>
     <div class="stage-section">
-      <h3 class="stage-section-title">Special Mode</h3>
+      <h3 class="stage-section-title">特殊モード</h3>
       ${tourCard}
     </div>
   `;
@@ -1337,16 +1338,18 @@ function countTags(cardData, tags) {
 function describeCard(c) {
   const parts = [];
   const hits = c.hits || 1;
-  if (c.damage) parts.push(hits > 1 ? `${c.damage}ダメージx${hits}` : `${c.damage}ダメージ`);
-  if (c.block) parts.push(`Block +${c.block}`);
-  if (c.heal) parts.push(`HP +${c.heal}`);
-  if (c.draw) parts.push(`${c.draw}ドロー`);
-  if (c.energyGain) parts.push(`Energy +${c.energyGain}`);
-  if (c.enemyWeak) parts.push(`Weak ${c.enemyWeak}`);
-  if (c.recoil) parts.push(`反動${c.recoil}`);
-  if (c.chorusGain) parts.push(`Chorus +${c.chorusGain}`);
+  if (c.damage) parts.push(hits > 1 ? c.damage + "ダメージ×" + hits : c.damage + "ダメージ");
+  if (c.block) parts.push("ブロック +" + c.block);
+  if (c.heal) parts.push("HP +" + c.heal);
+  if (c.draw) parts.push(c.draw + "ドロー");
+  if (c.energyGain) parts.push("Energy +" + c.energyGain);
+  if (c.enemyWeak) parts.push("弱体 " + c.enemyWeak);
+  if (c.recoil) parts.push("反動 " + c.recoil);
+  if (c.chorusGain) parts.push("Chorus +" + c.chorusGain);
   return parts.join(" / ");
 }
+
+
 
 function calculateCardDamage(c, context = {}) {
   const hits = c.hits || 1;
@@ -1367,7 +1370,7 @@ function calculateCardDamage(c, context = {}) {
   if ((state.playerWeak || 0) > 0 && !context.ignorePlayerWeak) {
     const beforeWeak = damagePerHit;
     damagePerHit = Math.max(0, Math.floor(damagePerHit * 0.75));
-    modifiers.push(`Player Weak ${beforeWeak}->${damagePerHit}`);
+    modifiers.push(`自分の弱体 ${beforeWeak}→${damagePerHit}`);
   }
   return {
     damagePerHit,
@@ -1380,14 +1383,14 @@ function calculateCardDamage(c, context = {}) {
 function formatCardDamage(c, damageInfo, actualDamage) {
   if (!c.damage) return describeCard(c);
   const hitText = damageInfo.hits > 1
-    ? `${damageInfo.damagePerHit}ダメージ x${damageInfo.hits}`
-    : `${damageInfo.damagePerHit}ダメージ`;
+    ? damageInfo.damagePerHit + "ダメージ ×" + damageInfo.hits
+    : damageInfo.damagePerHit + "ダメージ";
   const parts = [hitText];
-  if (actualDamage !== undefined && actualDamage !== damageInfo.totalDamage) {
-    parts.push(`実ダメージ ${actualDamage}`);
-  }
+  if (actualDamage !== undefined && actualDamage !== damageInfo.totalDamage) parts.push("実ダメージ " + actualDamage);
   return parts.join(" / ");
 }
+
+
 
 function renderLeaders() {
   els.leaderList.innerHTML = LEADERS.map((leader) => `
@@ -1625,7 +1628,7 @@ function applyPendingTremorPenalty() {
   if (state.energy < before) {
     bump(els.energyText);
     playBossEffect("tremor", "TREMOR");
-    return "Deep Tremor Djinn shook the stage! Energy -1";
+    return "Deep Tremor Djinnがステージを揺らした！ Energy -1";
   }
   return "";
 }
@@ -1667,20 +1670,20 @@ function playCard(index) {
   if (hasRelic("luckyPick") && hasTag(c, "GUITAR")) {
     bonusDamage += 2;
     damageModifiers.push("Lucky Pick +2");
-    relicLogs.push("Lucky Pick: GUITAR damage +2");
+    relicLogs.push("Lucky Pick: GUITAR ダメージ +2");
   }
   if (hasRelic("stickerGuitar") && hasTag(c, "ATTACK")) {
     bonusDamage += 1;
     damageModifiers.push("Sticker Guitar +1");
-    relicLogs.push("Sticker Covered Guitar: ATTACK damage +1");
+    relicLogs.push("Sticker Covered Guitar: ATTACK ダメージ +1");
   }
   if (hasRelic("heavyDrumPedal") && hasTag(c, "DRUM")) {
     bonusBlock += 3;
-    relicLogs.push("Heavy Drum Pedal: DRUM Block +3");
+    relicLogs.push("Heavy Drum Pedal: DRUM ブロック +3");
   }
   if (hasRelic("noiseFilter") && hasTag(c, "NOISE") && c.enemyWeak) {
     bonusEnemyWeak += 1;
-    relicLogs.push("Noise Filter: NOISE Weak +1 turn");
+    relicLogs.push("Noise Filter: NOISE 弱体 +1ターン");
   }
   if (hasRelic("crowdBanner") && hasTag(c, "CROWD")) {
     healPlayer(1, false);
@@ -1689,11 +1692,11 @@ function playCard(index) {
   if (hasRelic("fangedPickups") && hasTag(c, "ATTACK")) {
     bonusDamage += 2;
     damageModifiers.push("Fanged Pickups +2");
-    relicLogs.push("Fanged Pickups: ATTACK damage +2");
+    relicLogs.push("Fanged Pickups: ATTACK ダメージ +2");
   }
   if (hasRelic("velvetEarplugs") && hasTag(c, "DEBUFF")) {
     bonusEnemyWeak += 1;
-    relicLogs.push("Velvet Earplugs: DEBUFF Weak +1 turn");
+    relicLogs.push("Velvet Earplugs: DEBUFF 弱体 +1ターン");
   }
   if (hasRelic("harmonyRosette") && hasTag(c, "CHORUS")) {
     bonusChorus += 6;
@@ -1701,7 +1704,7 @@ function playCard(index) {
   }
   if (hasRelic("blueStageJacket") && hasTag(c, "DEFENSE")) {
     bonusBlock += 3;
-    relicLogs.push("Blue Stage Jacket: DEFENSE Block +3");
+    relicLogs.push("Blue Stage Jacket: DEFENSE ブロック +3");
   }
   if (hasRelic("vocalHoney") && hasTag(c, "VOCAL")) {
     healPlayer(1, false);
@@ -1711,17 +1714,17 @@ function playCard(index) {
     bonusDamage += 1;
     bonusChorus += 2;
     damageModifiers.push("Feedback Loop +1");
-    relicLogs.push("Feedback Loop: GUITAR damage +1 / Chorus +2");
+    relicLogs.push("Feedback Loop: GUITAR ダメージ +1 / Chorus +2");
   }
   if (hasRelic("basslineAnchor") && hasTag(c, "BASS")) {
     bonusBlock += 2;
     extraEnemyWeak += 1;
-    relicLogs.push("Bassline Anchor: Block +2 / Weak +1 turn");
+    relicLogs.push("Bassline Anchor: ブロック +2 / 弱体 +1ターン");
   }
   if (hasRelic("drumlineShoes") && hasTag(c, "DRUM")) {
     bonusBlock += 2;
     bonusChorus += 2;
-    relicLogs.push("Drumline Shoes: DRUM Block +2 / Chorus +2");
+    relicLogs.push("Drumline Shoes: DRUM ブロック +2 / Chorus +2");
   }
   if (hasRelic("crowdWristbands") && hasTag(c, "CROWD")) {
     bonusChorus += 3;
@@ -1731,7 +1734,7 @@ function playCard(index) {
     bonusDamage += 3;
     bonusEnemyWeak += 1;
     damageModifiers.push("Static Charm +3");
-    relicLogs.push("Static Charm: NOISE damage +3 / Weak +1 turn");
+    relicLogs.push("Static Charm: NOISE ダメージ +3 / 弱体 +1ターン");
   }
   if (hasRelic("spotlightLens") && hasTag(c, "DRAW")) {
     bonusChorus += 5;
@@ -1745,7 +1748,7 @@ function playCard(index) {
     bonusDamage += 6;
     bonusRecoil += 1;
     damageModifiers.push("Pyro Permit +6");
-    relicLogs.push("Pyro Permit: RISK damage +6 / recoil +1");
+    relicLogs.push("Pyro Permit: RISK ダメージ +6 / 反動 +1");
   }
   if (hasRelic("tagMixer") && (c.tags?.length || 0) >= 2) {
     bonusChorus += 3;
@@ -1755,7 +1758,7 @@ function playCard(index) {
     bonusDamage += 3;
     bonusBlock += 3;
     damageModifiers.push("Triple Encore Patch +3");
-    relicLogs.push("Triple Encore Patch: 3+ tags damage +3 / Block +3");
+    relicLogs.push("Triple Encore Patch: 3+ tags ダメージ +3 / ブロック +3");
   }
 
   let actualCardDamage = 0;
@@ -1775,17 +1778,17 @@ function playCard(index) {
     + extraEnemyWeak;
   if (totalEnemyWeak) {
     const weakResult = applyEnemyWeak(totalEnemyWeak);
-    relicLogs.push(weakResult.changed ? `Weak ${weakResult.value}` : "Weak維持");
+    relicLogs.push(weakResult.changed ? `弱体 ${weakResult.value}` : "弱体維持");
   }
   if (c.recoil) loseHp(Math.max(0, c.recoil + bonusRecoil));
   if (c.draw) {
     const drawn = drawCards(c.draw);
     if (drawn > 0) relicLogs.push(`${drawn}ドロー`);
-    if (drawn < c.draw) relicLogs.push("Hand is full!");
+    if (drawn < c.draw) relicLogs.push("手札がいっぱいでドローできない");
   }
   if (c.energyGain) {
     const gained = gainEnergy(c.energyGain);
-    relicLogs.push(gained > 0 ? `Energy +${gained}` : "Energy max");
+    relicLogs.push(gained > 0 ? `Energy +${gained}` : "Energyは最大");
   }
   if (c.chorusGain) gainChorus(c.chorusGain + bonusChorus);
 
@@ -1823,7 +1826,7 @@ function endTurn() {
     return;
   }
   state.turn += 1;
-  startPlayerTurn(`${enemyMessage} / Turn ${state.turn} 開始。`);
+  startPlayerTurn(`${enemyMessage} / ターン ${state.turn} 開始。`);
 }
 
 function enemyAct() {
@@ -1843,7 +1846,7 @@ function enemyAct() {
     const result = takeAttack(attackInfo.finalDamage);
     const weakResult = applyPlayerWeak(action.weak);
     didAttack = true;
-    message = `${formatIncomingDamageLog(name, attackInfo, result)} / ${weakResult.changed ? `Player Weak ${weakResult.value}` : "Player Weak維持"}`;
+    message = `${formatIncomingDamageLog(name, attackInfo, result)} / 自分に弱体 ${weakResult.changed ? weakResult.value : "維持"}`;
   }
   if (action.type === "multiAttack") {
     const attackInfo = enemyAttackInfo(action.amount);
@@ -1855,7 +1858,7 @@ function enemyAct() {
       totalDamage += result.damage;
     }
     didAttack = true;
-    message = `${name}: ${attackInfo.weakApplied ? `${attackInfo.strengthDamage}->${attackInfo.finalDamage}` : attackInfo.finalDamage} x${action.hits} / Block ${totalBlocked} / ${totalDamage}ダメージ`;
+    message = `${name}: ${attackInfo.weakApplied ? `${attackInfo.strengthDamage}→${attackInfo.finalDamage}` : attackInfo.finalDamage} ×${action.hits} / ブロック ${totalBlocked} / ${totalDamage}ダメージ`;
   }
   if (action.type === "buff") {
     state.enemy.bonusAttack += action.amount;
@@ -1865,11 +1868,11 @@ function enemyAct() {
     state.enemy.block += action.amount;
     playSe("block");
     playEffect("block", "enemy", { amount: action.amount, duration: 360 });
-    message = `${name}がBlock +${action.amount}。`;
+    message = `${name}: ブロック +${action.amount}`;
   }
   if (action.type === "playerWeak") {
     const weakResult = applyPlayerWeak(action.weak);
-    message = `${name}: ${weakResult.changed ? `Player Weak ${weakResult.value}` : "Player Weak維持"}`;
+    message = `${name}: 自分に${weakResult.changed ? `弱体 ${weakResult.value}` : "弱体維持"}`;
   }
   if (action.type === "attackBlock") {
     const attackInfo = enemyAttackInfo(action.amount);
@@ -1878,7 +1881,7 @@ function enemyAct() {
     playSe("block");
     playEffect("block", "enemy", { amount: action.block, duration: 360 });
     didAttack = true;
-    message = `${formatIncomingDamageLog(name, attackInfo, result)} / ${action.block} Block`;
+    message = `${formatIncomingDamageLog(name, attackInfo, result)} / ブロック ${action.block}`;
   }
   if (action.type === "shieldCrushAttack") {
     const crushLog = applyShieldCrush(action.crush);
@@ -1895,24 +1898,24 @@ function enemyAct() {
     state.enemy.block += action.block || 0;
     playSe("block");
     playEffect("block", "enemy", { amount: action.block || 0, duration: 420 });
-    message = `${pressureLog} / ${name}: Block +${action.block || 0}`;
+    message = `${pressureLog} / ${name}: ブロック +${action.block || 0}`;
   }
   if (action.type === "blockBuff") {
     state.enemy.block += action.block || 0;
     state.enemy.bonusAttack += action.buff || 0;
     playSe("block");
     playEffect("block", "enemy", { amount: action.block || 0, duration: 420 });
-    message = `${name}: Block +${action.block || 0} / Attack +${action.buff || 0}`;
+    message = `${name}: ブロック +${action.block || 0} / 攻撃 +${action.buff || 0}`;
   }
   if (action.type === "tremor") {
     state.pendingTremorPenalty = Math.max(state.pendingTremorPenalty || 0, 1);
     playBossEffect("tremor", "TREMOR");
-    message = "Deep Tremor Djinn shook the stage! Energy -1 next turn";
+    message = "Deep Tremor Djinnがステージを揺らした！ 次のターンEnergy -1";
   }
   if (action.type === "flickerCard") {
     queueHiddenCards(action.count || 1);
     playBossEffect("blackout", "FLICKER");
-    message = `${name} distorted the lights!`;
+    message = `${name}が照明をゆがませた！`;
   }
   if (action.type === "lightDrain") {
     state.chorus = Math.max(0, state.chorus - 15);
@@ -1923,7 +1926,7 @@ function enemyAct() {
     playBossEffect("blackout", "LIGHT DRAIN");
     playSe("block");
     playEffect("block", "enemy", { amount: 15, duration: 420 });
-    message = "Warehouse Light Eater drained the stage lights!";
+    message = "Warehouse Light Eaterがステージライトを吸収した！";
   }
   if (action.type === "attackDown") {
     const attackInfo = enemyAttackInfo(action.amount);
@@ -1970,7 +1973,7 @@ function handleStrobeWraithTurn() {
   state.enemy.flickerCounter = 0;
   queueHiddenCards(1);
   playBossEffect("blackout", "FLICKER");
-  return "Strobe Wraith distorted the lights!";
+  return "Strobe Wraithが照明をゆがませた！";
 }
 
 function handleWarehouseLightEaterTurn() {
@@ -1987,7 +1990,7 @@ function handleWarehouseLightEaterTurn() {
   playBossEffect("blackout", "LIGHT DRAIN");
   playSe("block");
   playEffect("block", "enemy", { amount: 15, duration: 420 });
-  return "Warehouse Light Eater drained the stage lights!";
+  return "Warehouse Light Eaterがステージライトを吸収した！";
 }
 
 function handleSoundholeLeviathanTurn() {
@@ -2007,7 +2010,7 @@ function applyShieldCrush(amount) {
     playEffect("damage", "player", { amount: crushed, label: "CRUSH", duration: 420 });
     bump(els.blockText);
   }
-  return `Shield Crush! Block -${crushed}`;
+  return `Shield Crush! ブロック -${crushed}`;
 }
 
 function addBassPressure(amount, message = "Bass Pressure +1") {
@@ -2017,7 +2020,7 @@ function addBassPressure(amount, message = "Bass Pressure +1") {
   if (state.enemy.gimmick === "bassLeviathan" && state.enemy.bassPressure >= 6) {
     state.enemy.warningBassCrush = true;
     playBossEffect("bassCrush", "WARNING");
-    return `${message} / WARNING! Bass Crush Incoming!`;
+    return `${message} / 警告！Bass Crush接近！`;
   }
   return message;
 }
@@ -2030,9 +2033,9 @@ function reduceBassPressure(amount) {
   playEffect("heal", "player", { amount: before - state.enemy.bassPressure, label: "BASS", duration: 420 });
   if (state.enemy.warningBassCrush && state.enemy.bassPressure < 6) {
     state.enemy.warningBassCrush = false;
-    return "Chorus pushed back the bass pressure! / Bass Crush prevented!";
+    return "ChorusがBass Pressureを押し返した！ / Bass Crushを阻止！";
   }
-  return "Chorus pushed back the bass pressure!";
+  return "ChorusがBass Pressureを押し返した！";
 }
 
 function triggerBassCrush() {
@@ -2046,7 +2049,7 @@ function triggerBassCrush() {
   playBossEffect("bassCrush", "BASS CRUSH");
   playEffect("damage", "player", { amount: 12, label: "BASS CRUSH", duration: 620 });
   bump(els.blockText);
-  return `Soundhole Leviathan unleashed Bass Crush! Block shattered ${shattered} / 12 damage / The Leviathan focuses on building pressure...`;
+  return `Soundhole LeviathanがBass Crushを放った！ ブロック破壊 ${shattered} / 12ダメージ / Leviathanは低音圧に集中している...`;
 }
 
 function queueHiddenCards(count) {
@@ -2107,7 +2110,7 @@ function triggerVoidBurst() {
   playSe("hit");
   playEffect("damage", "player", { amount: 10, duration: 520 });
   bump(els.chorusText);
-  return "Neon Void Idol unleashed Void Burst! 10ダメージ / Chorus -30";
+  return "Neon Void IdolがVoid Burstを放った！ 10ダメージ / Chorus -30";
 }
 
 function triggerVoidShield() {
@@ -2165,9 +2168,9 @@ function enemyAttackInfo(baseDamage) {
 
 function formatIncomingDamageLog(name, attackInfo, result) {
   const attackText = attackInfo.weakApplied
-    ? `${attackInfo.strengthDamage}->${attackInfo.finalDamage}`
+    ? `${attackInfo.strengthDamage}→${attackInfo.finalDamage}`
     : `${attackInfo.finalDamage}`;
-  return `${name}: ${attackText} / Block ${result.blocked} / ${result.damage}ダメージ`;
+  return `${name}: ${attackText} / ブロック ${result.blocked} / ${result.damage}ダメージ`;
 }
 
 function playerAttackAmount(baseDamage) {
@@ -2187,129 +2190,126 @@ function tickPlayerWeak() {
 
 function intentText() {
   const a = currentEnemyAction();
-  const weakNote = (state.enemy?.weak || 0) > 0 ? " (Weak)" : "";
-  if (a.type === "attack") return `⚔️ Attack ${enemyAttackAmount(a.amount)}${weakNote}`;
-  if (a.type === "attackPlayerWeak") return `⚔️ Attack ${enemyAttackAmount(a.amount)} / 💀 Weak ${a.weak}${weakNote}`;
-  if (a.type === "multiAttack") return `⚔️ Attack ${enemyAttackAmount(a.amount)} x${a.hits}${weakNote}`;
-  if (a.type === "buff") return `⚡ Attack Up +${a.amount}`;
-  if (a.type === "block") return `🛡️ ${a.amount} Block`;
-  if (a.type === "attackDown") return `⚔️ Attack ${enemyAttackAmount(a.amount)} / 💀 Disrupt${weakNote}`;
-  if (a.type === "chorusDown") return `📉 Chorus -${a.amount}`;
-  if (a.type === "bassPressure") return `🔊 Bass Pressure +${a.amount || 1}`;
-  if (a.type === "bassPressureBlock") return `🔊 Bass Pressure +${a.pressure || 1} / 🛡️ ${a.block || 0} Block`;
-  if (a.type === "shieldCrushAttack") return `🛡️ Shield Crush -${a.crush || 0} / ⚔️ Attack ${enemyAttackAmount(a.amount)}${weakNote}`;
-  if (a.type === "blockBuff") return `🛡️ ${a.block || 0} Block / ⚡ Attack +${a.buff || 0}`;
+  const weakNote = (state.enemy?.weak || 0) > 0 ? "（弱体中）" : "";
+  if (a.type === "attack") return "⚔️ 攻撃 " + enemyAttackAmount(a.amount) + weakNote;
+  if (a.type === "attackPlayerWeak") return "⚔️ 攻撃 " + enemyAttackAmount(a.amount) + " / 💀 弱体 " + a.weak + weakNote;
+  if (a.type === "multiAttack") return "⚔️ 攻撃 " + enemyAttackAmount(a.amount) + " ×" + a.hits + weakNote;
+  if (a.type === "buff") return "⚡ 攻撃アップ +" + a.amount;
+  if (a.type === "block") return "🛡️ ブロック " + a.amount;
+  if (a.type === "attackDown") return "⚔️ 攻撃 " + enemyAttackAmount(a.amount) + " / 💀 妨害" + weakNote;
+  if (a.type === "chorusDown") return "📉 Chorus -" + a.amount;
+  if (a.type === "bassPressure") return "🔊 Bass Pressure +" + (a.amount || 1);
+  if (a.type === "bassPressureBlock") return "🔊 Bass Pressure +" + (a.pressure || 1) + " / 🛡️ ブロック " + (a.block || 0);
+  if (a.type === "shieldCrushAttack") return "🛡️ Shield Crush -" + (a.crush || 0) + " / ⚔️ 攻撃 " + enemyAttackAmount(a.amount) + weakNote;
+  if (a.type === "blockBuff") return "🛡️ ブロック " + (a.block || 0) + " / ⚡ 攻撃アップ +" + (a.buff || 0);
   if (a.type === "tremor") return "🌊 Tremor";
-  return "❔ 行動不明";
+  return "行動不明";
 }
+
+
 
 function bossIntentNote() {
   if (!state.enemy) return "";
   if (state.enemy.gimmick === "flicker") {
     const turns = 3 - (state.enemy.flickerCounter || 0);
-    if (turns <= 1) return "🌑 Flicker soon";
+    if (turns <= 1) return "🌑 Flicker間近";
   }
   if (state.enemy.gimmick === "lightEater") {
     const action = currentEnemyAction();
     if (action.type === "lightDrain") return "🌑 Light Drain";
-    if (3 - (state.enemy.lightDrainCounter || 0) <= 1) return "🌑 Light Drain soon";
-    if ((state.enemy.nextAttackBonus || 0) > 0) return `⚡ Next Attack +${state.enemy.nextAttackBonus}`;
+    if (3 - (state.enemy.lightDrainCounter || 0) <= 1) return "🌑 Light Drain間近";
+    if ((state.enemy.nextAttackBonus || 0) > 0) return "⚡ 次の攻撃 +" + state.enemy.nextAttackBonus;
   }
   if (state.enemy.gimmick === "blackout") {
     const turns = 3 - (state.enemy.blackoutCounter || 0);
-    if (turns <= 1) return "🌑 Blackout soon";
+    if (turns <= 1) return "🌑 Blackout間近";
   }
-  if (state.enemy.gimmick === "void" && (state.enemy.voidPressure || 0) > 0) {
-    return `🟣 Void Pressure ${state.enemy.voidPressure}/3`;
-  }
+  if (state.enemy.gimmick === "void" && (state.enemy.voidPressure || 0) > 0) return "🟣 Void Pressure " + state.enemy.voidPressure + "/3";
   if (state.enemy.gimmick === "tremorDjinn") {
     const turns = Math.max(1, ((2 - state.enemy.actionIndex + state.enemy.actions.length) % state.enemy.actions.length) + 1);
-    return `🌊 Next Tremor: ${turns}`;
+    return "🌊 次のTremor: " + turns;
   }
   if (state.enemy.gimmick === "bassLeviathan") {
-    if (state.enemy.warningBassCrush) return "⚠ Bass Crush Incoming";
-    return `🔊 Bass Pressure ${state.enemy.bassPressure || 0}/6`;
+    if (state.enemy.warningBassCrush) return "⚠ Bass Crush接近";
+    return "🔊 Bass Pressure " + (state.enemy.bassPressure || 0) + "/6";
   }
   return "";
 }
 
+
 function stageAwareIntentText() {
   const a = currentEnemyAction();
-  const weakNote = (state.enemy?.weak || 0) > 0 ? " (Weak)" : "";
-  if (a.type === "playerWeak") return `💀 Weak ${a.weak}`;
-  if (a.type === "attackBlock") return `⚔️ Attack ${enemyAttackAmount(a.amount)} / 🛡 Block ${a.block}${weakNote}`;
-  if (a.type === "flickerCard") return "🌑 Flicker Card";
+  const weakNote = (state.enemy?.weak || 0) > 0 ? "（弱体中）" : "";
+  if (a.type === "playerWeak") return "💀 弱体 " + a.weak;
+  if (a.type === "attackBlock") return "⚔️ 攻撃 " + enemyAttackAmount(a.amount) + " / 🛡 ブロック " + a.block + weakNote;
+  if (a.type === "flickerCard") return "🌑 手札を隠す";
   if (a.type === "lightDrain") return "🌑 Light Drain";
   return intentText();
 }
+
+
 
 function bossStatusBadges() {
   if (!state.enemy) return [];
   if (state.enemy.gimmick === "flicker") {
     const turns = 3 - (state.enemy.flickerCounter || 0);
-    return [`<span class="status-chip status-boss">🌑 Next Flicker: ${turns}</span>`];
+    return ['<span class="status-chip status-boss">🌑 次のFlicker: ' + turns + '</span>'];
   }
   if (state.enemy.gimmick === "lightEater") {
     const turns = 3 - (state.enemy.lightDrainCounter || 0);
-    const chips = [`<span class="status-chip status-boss">🌑 Light Drain: ${turns}</span>`];
-    if ((state.enemy.nextAttackBonus || 0) > 0) {
-      chips.push(`<span class="status-chip status-attack-up">⚡ Next Attack +${state.enemy.nextAttackBonus}</span>`);
-    }
-    if (state.enemy.phase2Triggered) {
-      chips.push(`<span class="status-chip status-boss-danger">Total Blackout used</span>`);
-    }
+    const chips = ['<span class="status-chip status-boss">🌑 Light Drain: ' + turns + '</span>'];
+    if ((state.enemy.nextAttackBonus || 0) > 0) chips.push('<span class="status-chip status-attack-up">⚡ 次の攻撃 +' + state.enemy.nextAttackBonus + '</span>');
+    if (state.enemy.phase2Triggered) chips.push('<span class="status-chip status-boss-danger">Total Blackout使用済み</span>');
     return chips;
   }
   if (state.enemy.gimmick === "blackout") {
     const turns = 3 - (state.enemy.blackoutCounter || 0);
-    return [`<span class="status-chip status-boss">🌑 Next Blackout: ${turns}</span>`];
+    return ['<span class="status-chip status-boss">🌑 次のBlackout: ' + turns + '</span>'];
   }
   if (state.enemy.gimmick === "void") {
     const pressure = state.enemy.voidPressure || 0;
-    return [`<span class="status-chip status-boss ${pressure >= 2 ? "status-boss-danger" : ""}">🟣 Void Pressure ${pressure}/3</span>`];
+    return ['<span class="status-chip status-boss ' + (pressure >= 2 ? 'status-boss-danger' : '') + '">🟣 Void Pressure ' + pressure + '/3</span>'];
   }
   if (state.enemy.gimmick === "tremorDjinn") {
     const turns = Math.max(1, ((2 - state.enemy.actionIndex + state.enemy.actions.length) % state.enemy.actions.length) + 1);
-    const chips = [`<span class="status-chip status-boss">🌊 Next Tremor: ${turns}</span>`];
-    if ((state.enemy.bassPressure || 0) > 0) chips.push(`<span class="status-chip status-boss">🔊 Bass Pressure ${state.enemy.bassPressure}/6</span>`);
+    const chips = ['<span class="status-chip status-boss">🌊 次のTremor: ' + turns + '</span>'];
+    if ((state.enemy.bassPressure || 0) > 0) chips.push('<span class="status-chip status-boss">🔊 Bass Pressure ' + state.enemy.bassPressure + '/6</span>');
     return chips;
   }
   if (state.enemy.gimmick === "bassLeviathan") {
     const pressure = state.enemy.bassPressure || 0;
-    const chips = [`<span class="status-chip status-boss ${pressure >= 5 ? "status-boss-danger" : ""}">🔊 Bass Pressure ${pressure}/6</span>`];
-    if (state.enemy.phase2Triggered) chips.push(`<span class="status-chip status-boss-danger">Abyss Resonance</span>`);
+    const chips = ['<span class="status-chip status-boss ' + (pressure >= 5 ? 'status-boss-danger' : '') + '">🔊 Bass Pressure ' + pressure + '/6</span>'];
+    if (state.enemy.phase2Triggered) chips.push('<span class="status-chip status-boss-danger">Abyss Resonance</span>');
     return chips;
   }
-  if ((state.enemy.bassPressure || 0) > 0) {
-    return [`<span class="status-chip status-boss">🔊 Bass Pressure ${state.enemy.bassPressure}/6</span>`];
-  }
+  if ((state.enemy.bassPressure || 0) > 0) return ['<span class="status-chip status-boss">🔊 Bass Pressure ' + state.enemy.bassPressure + '/6</span>'];
   return [];
 }
+
 
 function renderStatusBadges(entity) {
   if (entity === "enemy") {
     const bonusAttack = state.enemy?.bonusAttack || 0;
     return [
-      state.enemy?.block > 0 ? `<span class="status-chip status-block">🛡 Block ${state.enemy.block}</span>` : "",
-      state.enemy?.weak > 0 ? `<span class="status-chip status-weak">💀 Weak ${state.enemy.weak}</span>` : "",
-      bonusAttack > 0 ? `<span class="status-chip status-attack-up">⚡ Attack +${bonusAttack}</span>` : "",
-      bonusAttack < 0 ? `<span class="status-chip status-attack-down">📉 Attack ${bonusAttack}</span>` : "",
-      state.enemy?.warningBassCrush ? `<span class="status-chip status-boss-danger">⚠ Bass Crush Incoming</span>` : "",
+      state.enemy?.block > 0 ? '<span class="status-chip status-block">🛡 ブロック ' + state.enemy.block + '</span>' : "",
+      state.enemy?.weak > 0 ? '<span class="status-chip status-weak">💀 弱体 ' + state.enemy.weak + '</span>' : "",
+      bonusAttack > 0 ? '<span class="status-chip status-attack-up">⚡ 攻撃 +' + bonusAttack + '</span>' : "",
+      bonusAttack < 0 ? '<span class="status-chip status-attack-down">📉 攻撃 ' + bonusAttack + '</span>' : "",
+      state.enemy?.warningBassCrush ? '<span class="status-chip status-boss-danger">⚠ Bass Crush接近</span>' : "",
       ...bossStatusBadges(),
     ].filter(Boolean).join("");
   }
-
   if (entity === "player") {
     const playerBonusAttack = state.playerBonusAttack || 0;
     return [
-      state.playerWeak > 0 ? `<span class="status-chip status-weak">💀 Player Weak ${state.playerWeak}</span>` : "",
-      playerBonusAttack > 0 ? `<span class="status-chip status-attack-up">⚡ Attack +${playerBonusAttack}</span>` : "",
-      playerBonusAttack < 0 ? `<span class="status-chip status-attack-down">📉 Attack ${playerBonusAttack}</span>` : "",
+      state.playerWeak > 0 ? '<span class="status-chip status-weak">💀 自分の弱体 ' + state.playerWeak + '</span>' : "",
+      playerBonusAttack > 0 ? '<span class="status-chip status-attack-up">⚡ 攻撃 +' + playerBonusAttack + '</span>' : "",
+      playerBonusAttack < 0 ? '<span class="status-chip status-attack-down">📉 攻撃 ' + playerBonusAttack + '</span>' : "",
     ].filter(Boolean).join("");
   }
-
   return "";
 }
+
 
 function dealDamage(amount, options = {}) {
   const finalAmount = options.final || state.chorusDamageActive ? amount : playerAttackAmount(amount);
@@ -2567,7 +2567,7 @@ function triggerAbyssResonance() {
   state.enemy.bonusAttack += 2;
   const pressureLog = addBassPressure(2, "Bass Pressure +2");
   playBossEffect("bassCrush", "ABYSS RESONANCE");
-  log(`Abyss Resonance! The hall begins to collapse under the bass! / Attack +2 / ${pressureLog}`);
+  log(`Abyss Resonance! ホールが重低音で崩れ始めた！ / 攻撃 +2 / ${pressureLog}`);
 }
 
 function winBattle() {
@@ -2583,7 +2583,7 @@ function winBattle() {
 function showBattleVictory(encounter) {
   playSe("victory");
   const isBoss = encounter.reward === "stageClear" || encounter.reward === "win";
-  els.battleVictoryTitle.textContent = isBoss ? "Final Live Clear!" : "Live Clear!";
+  els.battleVictoryTitle.textContent = isBoss ? "ファイナルライブ成功！" : "ライブ成功！";
   els.battleVictoryText.textContent = isBoss
     ? `${state.enemy.name}を倒した！タップしてリザルトへ。`
     : `${state.enemy.name}を倒した！タップして報酬へ。`;
@@ -2654,25 +2654,25 @@ function showStageClearResult() {
   const nextStage = state.lastStageClear?.nextStage || null;
   showScreen("resultScreen");
   state.runOver = true;
-  els.resultBadge.textContent = "Stage Clear";
-  els.resultTitle.textContent = "STAGE CLEAR!";
-  els.restartButton.textContent = "Stage Select";
+  els.resultBadge.textContent = "ステージクリア";
+  els.resultTitle.textContent = "ステージクリア！";
+  els.restartButton.textContent = "ステージ選択へ";
   state.resultAction = "stageSelect";
   renderResultActions([]);
   const unlockText = nextStage
     ? nextStage.playable
-      ? `New Stage Unlocked: ${nextStage.name}`
-      : `${nextStage.name}: Coming Soon`
+      ? `新ステージ解放: ${nextStage.name}`
+      : `${nextStage.name}: 近日追加`
     : state.lastStageClear?.tourUnlockedNow
-      ? "Tour Mode Unlocked!"
-      : "Coming Soon...";
-  els.resultText.textContent = `${clearedStage.name} Cleared! ${unlockText}`;
+      ? "Tour Mode解放！"
+      : "続きは近日追加。";
+  els.resultText.textContent = `${clearedStage.name} クリア！ ${unlockText}`;
   els.runSummary.innerHTML = [
-    `Leader: ${state.leader?.name || "-"}`,
-    `Deck: ${state.masterDeck.length}`,
-    `Relic: ${state.relics.map((r) => r.name).join(", ") || "None"}`,
-    `Stage: ${clearedStage.name}`,
-    `Battle: ${currentEncounters().length} / ${currentEncounters().length}`,
+    `リーダー: ${state.leader?.name || "-"}`,
+    `デッキ: ${state.masterDeck.length}`,
+    `レリック: ${state.relics.map((r) => r.name).join(", ") || "なし"}`,
+    `ステージ: ${clearedStage.name}`,
+    `バトル: ${currentEncounters().length} / ${currentEncounters().length}`,
   ].map((text) => `<span>${text}</span>`).join("");
 }
 
@@ -2682,16 +2682,16 @@ function showTourStageClearResult() {
   showScreen("resultScreen");
   state.runOver = true;
   els.resultBadge.textContent = "Tour Mode";
-  els.resultTitle.textContent = "STAGE CLEAR!";
-  els.restartButton.textContent = nextStage ? `Next: ${nextStage.name}` : "Continue";
-  els.resultText.textContent = `${clearedStage.name} Cleared! Stage Clear Bonus: HP +${state.lastStageClear?.healAmount || 0}`;
+  els.resultTitle.textContent = "ステージクリア！";
+  els.restartButton.textContent = nextStage ? `次へ: ${nextStage.name}` : "続ける";
+  els.resultText.textContent = `${clearedStage.name} クリア！ ステージクリアボーナス: HP +${state.lastStageClear?.healAmount || 0}`;
   els.runSummary.innerHTML = [
     `TOUR MODE`,
-    `Stage: ${state.tourStageIndex} / ${TOUR_STAGE_IDS.length}`,
-    `Next: ${nextStage?.name || "-"}`,
+    `ステージ: ${state.tourStageIndex} / ${TOUR_STAGE_IDS.length}`,
+    `次: ${nextStage?.name || "-"}`,
     `HP: ${state.hp} / ${state.maxHp}`,
-    `Deck: ${state.masterDeck.length}`,
-    `Relic: ${state.relics.length}`,
+    `デッキ: ${state.masterDeck.length}`,
+    `レリック: ${state.relics.length}`,
   ].map((text) => `<span>${text}</span>`).join("");
   renderResultActions([]);
 }
@@ -2701,20 +2701,20 @@ function showTourClearResult() {
   state.runOver = true;
   state.resultAction = "tourRestart";
   els.resultBadge.textContent = "Tour Mode";
-  els.resultTitle.textContent = "TOUR CLEAR!";
+  els.resultTitle.textContent = "ツアー制覇！";
   els.restartButton.textContent = "Tour Modeをもう一度";
   els.resultText.textContent = "Stage 1〜Stage 3を完走しました！";
   els.runSummary.innerHTML = [
-    `Leader: ${state.leader?.name || "-"}`,
+    `リーダー: ${state.leader?.name || "-"}`,
     `HP: ${state.hp} / ${state.maxHp}`,
-    `Deck: ${state.masterDeck.length}`,
-    `Relic Count: ${state.relics.length}`,
-    `Relic: ${state.relics.map((r) => r.name).join(", ") || "None"}`,
-    `Total Battles: 15`,
+    `デッキ: ${state.masterDeck.length}`,
+    `レリック数: ${state.relics.length}`,
+    `レリック: ${state.relics.map((r) => r.name).join(", ") || "なし"}`,
+    `合計バトル: 15`,
   ].map((text) => `<span>${text}</span>`).join("");
   renderResultActions([
-    { action: "title", label: "Titleへ戻る" },
-    { action: "stageSelect", label: "Stage Selectへ戻る" },
+    { action: "title", label: "タイトルへ戻る" },
+    { action: "stageSelect", label: "ステージ選択へ戻る" },
   ]);
 }
 
@@ -2723,19 +2723,19 @@ function showTourFailedResult() {
   state.runOver = true;
   state.resultAction = "tourRestart";
   els.resultBadge.textContent = "Tour Mode";
-  els.resultTitle.textContent = "TOUR FAILED";
+  els.resultTitle.textContent = "ツアー失敗";
   els.restartButton.textContent = "Tour Modeをもう一度";
   els.resultText.textContent = `${state.enemy?.name || "Enemy"}に押し切られました。`;
   els.runSummary.innerHTML = [
-    `Reached: Stage ${state.tourStageIndex + 1} / ${TOUR_STAGE_IDS.length}`,
-    `Battle: ${Math.min(state.encounterIndex + 1, currentEncounters().length)} / ${currentEncounters().length}`,
-    `Leader: ${state.leader?.name || "-"}`,
-    `Deck: ${state.masterDeck.length}`,
-    `Relic Count: ${state.relics.length}`,
+    `到達: Stage ${state.tourStageIndex + 1} / ${TOUR_STAGE_IDS.length}`,
+    `バトル: ${Math.min(state.encounterIndex + 1, currentEncounters().length)} / ${currentEncounters().length}`,
+    `リーダー: ${state.leader?.name || "-"}`,
+    `デッキ: ${state.masterDeck.length}`,
+    `レリック数: ${state.relics.length}`,
   ].map((text) => `<span>${text}</span>`).join("");
   renderResultActions([
-    { action: "title", label: "Titleへ戻る" },
-    { action: "stageSelect", label: "Stage Selectへ戻る" },
+    { action: "title", label: "タイトルへ戻る" },
+    { action: "stageSelect", label: "ステージ選択へ戻る" },
   ]);
 }
 
@@ -2752,10 +2752,11 @@ function showCardRewards() {
   const choices = pickRewardCards(3);
   els.cardRewardList.innerHTML = choices.map((id) => {
     const c = card(id);
+    const typeLabel = c.type === "attack" ? "攻撃" : "スキル";
     return `
       <button class="reward-card rarity-card rarity-${c.rarity}" type="button" data-card="${id}">
         ${rarityBadge(c)}
-        <span class="type-pill">${c.type} / cost ${c.cost}</span>
+        <span class="type-pill">${typeLabel} / コスト ${c.cost}</span>
         <strong>${c.name}</strong>
         <span class="card-tags reward-tags">
           ${c.tags.map((tag) => `<span class="tag-badge tag-${tag.toLowerCase()}">${tag}</span>`).join("")}
@@ -2771,7 +2772,7 @@ function chooseCardReward(id) {
   state.masterDeck.push(id);
   const c = card(id);
   const info = rarityInfo(c.rarity);
-  state.pendingRewardLog = `Obtained: ${info.icon} ${c.name}`;
+  state.pendingRewardLog = `獲得: ${info.icon} ${c.name}`;
   state.encounterIndex += 1;
   startEncounter();
 }
@@ -2803,18 +2804,33 @@ function hasRelic(id) {
   return state.relics.some((relic) => relic.id === id);
 }
 
+function renderTourBattleHeader(battleTypeLabel) {
+  if (!els.tourHeader) return;
+  if (state.gameMode !== "tour") {
+    els.tourHeader.hidden = true;
+    els.tourHeader.innerHTML = "";
+    return;
+  }
+  els.tourHeader.hidden = false;
+  els.tourHeader.innerHTML = `
+    <strong>🎸 Tour Mode</strong>
+    <span>Stage ${state.tourStageIndex + 1}/${TOUR_STAGE_IDS.length} • バトル ${state.encounterIndex + 1}/${currentEncounters().length} • ${battleTypeLabel}</span>
+    <em>${currentStage().name}</em>
+  `;
+}
+
 function renderBattle() {
   const enemyPct = (state.enemy.hp / state.enemy.maxHp) * 100;
+  const encounter = currentEncounters()[state.encounterIndex];
   const battleTypeLabel = state.enemy.enemyType === "elite"
-    ? "Elite Battle"
-    : currentEncounters()[state.encounterIndex].kind === "boss"
-    ? "Boss Battle"
-    : currentEncounters()[state.encounterIndex].kind === "midboss"
-      ? "Mid Boss"
-      : `Battle ${state.encounterIndex + 1}`;
-  els.encounterLabel.textContent = state.gameMode === "tour"
-    ? `TOUR MODE - Stage ${state.tourStageIndex + 1}/3 ${currentStage().name} - Battle ${state.encounterIndex + 1}/5 - ${battleTypeLabel}`
-    : battleTypeLabel;
+    ? "エリート"
+    : encounter.kind === "boss"
+    ? "ボス"
+    : encounter.kind === "midboss"
+      ? "中ボス"
+      : `バトル ${state.encounterIndex + 1}`;
+  renderTourBattleHeader(battleTypeLabel);
+  els.encounterLabel.textContent = battleTypeLabel;
   els.enemyArea.dataset.enemy = state.enemy.id;
   const enemyBanner = ENEMY_BANNERS[state.enemy.id];
   if (els.enemyBannerImage && enemyBanner) {
@@ -2857,7 +2873,7 @@ function renderBattle() {
   els.energyText.textContent = `${state.energy} / ${state.maxEnergy}`;
   els.chorusText.textContent = `${state.chorus} / 100`;
   els.chorusBar.style.width = `${state.chorus}%`;
-  els.pileText.textContent = `Deck ${state.drawPile.length} / Discard ${state.discardPile.length}`;
+  els.pileText.textContent = `山札 ${state.drawPile.length} / 捨て札 ${state.discardPile.length}`;
   const chorusReady = state.chorus >= 100;
   const meta = chorusMeta();
   els.chorusButton.dataset.theme = meta.theme;
@@ -2877,7 +2893,7 @@ function renderBattle() {
     if (!id) {
       return `
         <div class="card-slot empty-slot" aria-label="使用済み枠">
-          <span>Used</span>
+          <span>使用済み</span>
         </div>
       `;
     }
@@ -2892,13 +2908,13 @@ function renderBattle() {
         <span class="card-tags">
           ${c.tags.map((tag) => `<span class="tag-badge tag-${tag.toLowerCase()}">${tag}</span>`).join("")}
         </span>
-        <p class="card-text">${blackedOut ? "Blackout: effect hidden" : describeCard(c)}</p>
+        <p class="card-text">${blackedOut ? "Blackout: 効果不明" : describeCard(c)}</p>
       </button>
     `;
   }).join("");
   els.hand.innerHTML = `${handSlotsHtml}
     <button id="endTurnButton" class="primary-button end-turn hand-end-turn" type="button" ${state.chorusAnimating ? "disabled" : ""}>
-      End Turn
+      ターン終了
     </button>
   `;
   els.endTurnButton = document.querySelector("#endTurnButton");
@@ -2936,7 +2952,7 @@ function showRelicOverlay(id) {
       <div class="relic-detail-heading">
         <div class="relic-detail-icon">${relic.emoji}</div>
         <div>
-          <span>RELIC</span>
+          <span>レリック</span>
           <strong>${relic.name}</strong>
         </div>
       </div>
@@ -2960,7 +2976,7 @@ function renderLeaderInfoPopup() {
     <div class="leader-info-panel" role="dialog" aria-modal="true" aria-label="リーダー情報">
       <button class="leader-info-close" type="button" aria-label="閉じる">×</button>
       <div class="leader-info-section">
-        <span>PASSIVE</span>
+        <span>パッシブ</span>
         <strong>${state.leader.chorusIcon} ${state.leader.passiveName}</strong>
         <p>${state.leader.passiveDescription}</p>
       </div>
@@ -3007,7 +3023,7 @@ function continueTourToNextStage() {
   state.stageId = nextStageId;
   state.encounterIndex = 0;
   state.pendingVictoryReward = null;
-  state.pendingRewardLog = `Stage Clear Bonus: HP +${state.lastStageClear?.healAmount || 0}`;
+  state.pendingRewardLog = `ステージクリアボーナス: HP +${state.lastStageClear?.healAmount || 0}`;
   state.resultAction = "title";
   state.runOver = false;
   renderResultActions([]);
@@ -3030,7 +3046,7 @@ function restartTourMode() {
 function returnToTitle() {
   resetRun();
   renderResultActions([]);
-  els.restartButton.textContent = "Back to Title";
+  els.restartButton.textContent = "タイトルへ戻る";
   showScreen("titleScreen");
 }
 
@@ -3046,17 +3062,17 @@ function showResult(victory, shouldPlayVictorySe = true) {
   state.resultAction = "title";
   renderResultActions([]);
   if (victory && shouldPlayVictorySe) playSe("victory");
-  els.resultBadge.textContent = victory ? "Victory" : "Defeat";
+  els.resultBadge.textContent = victory ? "勝利" : "敗北";
   els.resultTitle.textContent = victory ? "Neon Void Idol撃破！" : "ライブ失敗";
   els.resultText.textContent = victory
     ? `${state.leader.name}の演奏が夜を塗り替えた。猫バンド、アンコール成功！`
     : `${state.enemy?.name || "敵"}に押し切られた。次はEnergy配分とChorusのタイミングを変えてみよう。`;
   els.runSummary.innerHTML = [
-    `Leader: ${state.leader?.name || "-"}`,
-    `Deck: ${state.masterDeck.length}`,
-    `Relic: ${state.relics.map((r) => r.name).join(", ") || "なし"}`,
+    `リーダー: ${state.leader?.name || "-"}`,
+    `デッキ: ${state.masterDeck.length}`,
+    `レリック: ${state.relics.map((r) => r.name).join(", ") || "なし"}`,
     `Stage: ${currentStage().name}`,
-    `Battle: ${Math.min(state.encounterIndex + 1, currentEncounters().length)} / ${currentEncounters().length}`,
+    `バトル: ${Math.min(state.encounterIndex + 1, currentEncounters().length)} / ${currentEncounters().length}`,
   ].map((text) => `<span>${text}</span>`).join("");
 }
 

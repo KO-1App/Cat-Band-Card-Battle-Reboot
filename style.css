@@ -525,6 +525,43 @@ h3 {
   padding-bottom: 5px;
 }
 
+.tour-battle-header {
+  order: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  align-items: center;
+  padding: 5px 8px;
+  border: 2px solid rgba(48, 38, 52, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 253, 244, 0.88);
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.1;
+}
+
+.tour-battle-header[hidden] {
+  display: none;
+}
+
+.tour-battle-header strong {
+  font-size: 0.82rem;
+  color: var(--purple);
+}
+
+.tour-battle-header span {
+  justify-self: end;
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.tour-battle-header em {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 800;
+}
+
 .enemy-area {
   order: 1;
   position: relative;
