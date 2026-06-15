@@ -115,6 +115,13 @@ const ENCOUNTERS = [
 ];
 
 const STAGE_UNLOCK_KEY = "catBandUnlockedStages";
+const TOUR_UNLOCK_KEY = "catBandTourModeUnlocked";
+const TOUR_STAGE_IDS = ["neon_city", "blackout_warehouse", "abyss_bass_hall"];
+const TOUR_MODIFIERS = {
+  neon_city: { hp: 1, attack: 1 },
+  blackout_warehouse: { hp: 1.15, attack: 1 },
+  abyss_bass_hall: { hp: 1.3, attack: 1.15 },
+};
 
 const STAGES = [
   {
@@ -680,6 +687,11 @@ const state = {
   pendingVictoryReward: null,
   pendingRewardLog: "",
   selectedRelicId: null,
+  gameMode: "stage",
+  tourStageIndex: 0,
+  tourBattlesWon: 0,
+  tourUnlocked: false,
+  resultAction: "title",
   stageId: "neon_city",
   unlockedStages: defaultStageUnlocks(),
   lastStageClear: null,
@@ -736,6 +748,7 @@ const els = {
   resultBadge: document.querySelector("#resultBadge"),
   resultTitle: document.querySelector("#resultTitle"),
   resultText: document.querySelector("#resultText"),
+  resultActions: document.querySelector("#resultActions"),
   runSummary: document.querySelector("#runSummary"),
 };
 
@@ -763,12 +776,43 @@ function saveStageUnlocks() {
   localStorage.setItem(STAGE_UNLOCK_KEY, JSON.stringify(state.unlockedStages));
 }
 
+function loadTourUnlock() {
+  return localStorage.getItem(TOUR_UNLOCK_KEY) === "true";
+}
+
+function saveTourUnlock() {
+  localStorage.setItem(TOUR_UNLOCK_KEY, state.tourUnlocked ? "true" : "false");
+}
+
+function unlockTourMode() {
+  if (state.tourUnlocked) return false;
+  state.tourUnlocked = true;
+  saveTourUnlock();
+  return true;
+}
+
 function resetStageUnlocks() {
   state.unlockedStages = defaultStageUnlocks();
   saveStageUnlocks();
   renderStageSelect();
   console.log("[Stage] unlocks reset", state.unlockedStages);
   return state.unlockedStages;
+}
+
+function resetTourUnlock() {
+  state.tourUnlocked = false;
+  saveTourUnlock();
+  renderStageSelect();
+  console.log("[Tour] unlock reset");
+  return state.tourUnlocked;
+}
+
+function unlockTourModeForDebug() {
+  state.tourUnlocked = true;
+  saveTourUnlock();
+  renderStageSelect();
+  console.log("[Tour] unlocked for debug");
+  return state.tourUnlocked;
 }
 
 function stageById(id) {
@@ -781,6 +825,19 @@ function currentStage() {
 
 function currentEncounters() {
   return currentStage().battles.length ? currentStage().battles : ENCOUNTERS;
+}
+
+function currentTourModifier() {
+  if (state.gameMode !== "tour") return { hp: 1, attack: 1 };
+  return TOUR_MODIFIERS[currentStage().id] || { hp: 1, attack: 1 };
+}
+
+function tourScaledEnemyHp(baseHp) {
+  return Math.max(1, Math.round(baseHp * currentTourModifier().hp));
+}
+
+function tourScaledEnemyAttack(baseDamage) {
+  return Math.max(0, Math.round(baseDamage * currentTourModifier().attack));
 }
 
 function isStageUnlocked(stage) {
@@ -802,7 +859,7 @@ function unlockNextStage(stageId) {
 
 function renderStageSelect() {
   if (!els.stageList) return;
-  els.stageList.innerHTML = STAGES.map((stage) => {
+  const normalStages = STAGES.map((stage) => {
     const unlocked = isStageUnlocked(stage);
     const playable = unlocked && stage.playable;
     const requirement = stage.unlockRequirement ? stageById(stage.unlockRequirement).name : null;
@@ -827,6 +884,32 @@ function renderStageSelect() {
       </article>
     `;
   }).join("");
+  const tourStatus = state.tourUnlocked ? "UNLOCKED" : "LOCKED - Clear Abyss Bass Hall";
+  const tourAction = state.tourUnlocked ? "PLAY" : "LOCKED";
+  const tourCard = `
+    <article class="stage-card tour-card ${state.tourUnlocked ? "unlocked" : "locked"}">
+      <div>
+        <p class="eyebrow">Special Mode</p>
+        <h3>Tour Mode</h3>
+        <p>Stage 1〜Stage 3をデッキ、HP、レリック引き継ぎで連続攻略。</p>
+        <span class="stage-status">${tourStatus}</span>
+        <span class="stage-boss">Total: 15 Battles</span>
+      </div>
+      <button class="primary-button stage-play-button" type="button" data-tour="true" ${state.tourUnlocked ? "" : "disabled"}>
+        ${tourAction}
+      </button>
+    </article>
+  `;
+  els.stageList.innerHTML = `
+    <div class="stage-section">
+      <h3 class="stage-section-title">Normal Stages</h3>
+      ${normalStages}
+    </div>
+    <div class="stage-section">
+      <h3 class="stage-section-title">Special Mode</h3>
+      ${tourCard}
+    </div>
+  `;
 }
 
 function showStageSelect() {
@@ -1321,7 +1404,11 @@ function renderLeaders() {
   `).join("");
 }
 
-function resetRun() {
+function resetRun(options = {}) {
+  const keepMode = !!options.keepMode;
+  const mode = state.gameMode;
+  const tourStageIndex = state.tourStageIndex;
+  const stageId = state.stageId;
   Object.assign(state, {
     leader: null,
     maxHp: 72,
@@ -1351,6 +1438,11 @@ function resetRun() {
     pendingVictoryReward: null,
     pendingRewardLog: "",
     selectedRelicId: null,
+    gameMode: keepMode ? mode : "stage",
+    tourStageIndex: keepMode ? tourStageIndex : 0,
+    tourBattlesWon: 0,
+    resultAction: "title",
+    stageId: keepMode ? stageId : "neon_city",
     lastStageClear: null,
     resultReturnToStageSelect: false,
   });
@@ -1358,7 +1450,7 @@ function resetRun() {
 
 function chooseLeader(id) {
   const leader = LEADERS.find((item) => item.id === id);
-  resetRun();
+  resetRun({ keepMode: true });
   state.leader = leader;
   state.masterDeck = [...leader.deck];
   applyDebugDeck();
@@ -1413,11 +1505,12 @@ function startEncounter() {
   const encounter = currentEncounters()[state.encounterIndex];
   const enemyId = pickEnemyForEncounter(encounter);
   const enemyData = ENEMIES[enemyId];
+  const scaledHp = tourScaledEnemyHp(enemyData.hp);
   state.enemy = {
     ...enemyData,
     id: enemyId,
-    maxHp: enemyData.hp,
-    hp: enemyData.hp,
+    maxHp: scaledHp,
+    hp: scaledHp,
     block: 0,
     weak: 0,
     actionIndex: 0,
@@ -1466,7 +1559,9 @@ function startEncounter() {
   hideLeaderInfoPopup();
   if (state.enemy.enemyType === "elite") showEliteIntro();
   playEncounterBGM(encounter);
-  const battleMessage = `Battle ${state.encounterIndex + 1}: ${state.enemy.name}`;
+  const battleMessage = state.gameMode === "tour"
+    ? `TOUR Stage ${state.tourStageIndex + 1}/3 Battle ${state.encounterIndex + 1}/5: ${state.enemy.name}`
+    : `Battle ${state.encounterIndex + 1}: ${state.enemy.name}`;
   const rewardMessage = state.pendingRewardLog;
   state.pendingRewardLog = "";
   startPlayerTurn(rewardMessage ? `${rewardMessage} / ${battleMessage}` : battleMessage);
@@ -2047,18 +2142,21 @@ function currentEnemyAction() {
 }
 
 function enemyAttackAmount(baseDamage) {
-  const strengthDamage = Math.max(0, baseDamage + (state.enemy?.bonusAttack || 0) + (state.enemy?.nextAttackBonus || 0));
+  const scaledBase = tourScaledEnemyAttack(baseDamage);
+  const strengthDamage = Math.max(0, scaledBase + (state.enemy?.bonusAttack || 0) + (state.enemy?.nextAttackBonus || 0));
   if ((state.enemy?.weak || 0) <= 0) return strengthDamage;
   return Math.max(0, Math.floor(strengthDamage * 0.75));
 }
 
 function enemyAttackInfo(baseDamage) {
-  const strengthDamage = Math.max(0, baseDamage + (state.enemy?.bonusAttack || 0) + (state.enemy?.nextAttackBonus || 0));
+  const scaledBase = tourScaledEnemyAttack(baseDamage);
+  const strengthDamage = Math.max(0, scaledBase + (state.enemy?.bonusAttack || 0) + (state.enemy?.nextAttackBonus || 0));
   const finalDamage = (state.enemy?.weak || 0) > 0
     ? Math.max(0, Math.floor(strengthDamage * 0.75))
     : strengthDamage;
   return {
     baseDamage,
+    scaledBase,
     strengthDamage,
     finalDamage,
     weakApplied: finalDamage !== strengthDamage,
@@ -2513,14 +2611,42 @@ function completeStage() {
   const clearedStage = currentStage();
   state.unlockedStages[clearedStage.id] = true;
   saveStageUnlocks();
+  const tourUnlockedNow = clearedStage.id === "abyss_bass_hall" ? unlockTourMode() : false;
+  if (state.gameMode === "tour") {
+    completeTourStage(clearedStage);
+    return;
+  }
   const nextStage = unlockNextStage(clearedStage.id);
   state.lastStageClear = {
     clearedStage,
     nextStage,
     nextStagePlayable: !!nextStage?.playable,
+    tourUnlockedNow,
   };
   state.resultReturnToStageSelect = true;
   showStageClearResult();
+}
+
+function stageClearHealBonus() {
+  const amount = Math.round(state.maxHp * 0.2);
+  const before = state.hp;
+  state.hp = Math.min(state.maxHp, state.hp + amount);
+  return state.hp - before;
+}
+
+function completeTourStage(clearedStage) {
+  state.tourBattlesWon += currentEncounters().length;
+  const isFinalTourStage = state.tourStageIndex >= TOUR_STAGE_IDS.length - 1;
+  if (isFinalTourStage) {
+    showTourClearResult();
+    return;
+  }
+  const healAmount = stageClearHealBonus();
+  state.tourStageIndex += 1;
+  const nextStage = stageById(TOUR_STAGE_IDS[state.tourStageIndex]);
+  state.lastStageClear = { clearedStage, nextStage, healAmount };
+  state.resultAction = "tourNext";
+  showTourStageClearResult();
 }
 
 function showStageClearResult() {
@@ -2531,11 +2657,15 @@ function showStageClearResult() {
   els.resultBadge.textContent = "Stage Clear";
   els.resultTitle.textContent = "STAGE CLEAR!";
   els.restartButton.textContent = "Stage Select";
+  state.resultAction = "stageSelect";
+  renderResultActions([]);
   const unlockText = nextStage
     ? nextStage.playable
       ? `New Stage Unlocked: ${nextStage.name}`
       : `${nextStage.name}: Coming Soon`
-    : "Coming Soon...";
+    : state.lastStageClear?.tourUnlockedNow
+      ? "Tour Mode Unlocked!"
+      : "Coming Soon...";
   els.resultText.textContent = `${clearedStage.name} Cleared! ${unlockText}`;
   els.runSummary.innerHTML = [
     `Leader: ${state.leader?.name || "-"}`,
@@ -2546,8 +2676,75 @@ function showStageClearResult() {
   ].map((text) => `<span>${text}</span>`).join("");
 }
 
+function showTourStageClearResult() {
+  const clearedStage = state.lastStageClear?.clearedStage || currentStage();
+  const nextStage = state.lastStageClear?.nextStage || null;
+  showScreen("resultScreen");
+  state.runOver = true;
+  els.resultBadge.textContent = "Tour Mode";
+  els.resultTitle.textContent = "STAGE CLEAR!";
+  els.restartButton.textContent = nextStage ? `Next: ${nextStage.name}` : "Continue";
+  els.resultText.textContent = `${clearedStage.name} Cleared! Stage Clear Bonus: HP +${state.lastStageClear?.healAmount || 0}`;
+  els.runSummary.innerHTML = [
+    `TOUR MODE`,
+    `Stage: ${state.tourStageIndex} / ${TOUR_STAGE_IDS.length}`,
+    `Next: ${nextStage?.name || "-"}`,
+    `HP: ${state.hp} / ${state.maxHp}`,
+    `Deck: ${state.masterDeck.length}`,
+    `Relic: ${state.relics.length}`,
+  ].map((text) => `<span>${text}</span>`).join("");
+  renderResultActions([]);
+}
+
+function showTourClearResult() {
+  showScreen("resultScreen");
+  state.runOver = true;
+  state.resultAction = "tourRestart";
+  els.resultBadge.textContent = "Tour Mode";
+  els.resultTitle.textContent = "TOUR CLEAR!";
+  els.restartButton.textContent = "Tour Modeをもう一度";
+  els.resultText.textContent = "Stage 1〜Stage 3を完走しました！";
+  els.runSummary.innerHTML = [
+    `Leader: ${state.leader?.name || "-"}`,
+    `HP: ${state.hp} / ${state.maxHp}`,
+    `Deck: ${state.masterDeck.length}`,
+    `Relic Count: ${state.relics.length}`,
+    `Relic: ${state.relics.map((r) => r.name).join(", ") || "None"}`,
+    `Total Battles: 15`,
+  ].map((text) => `<span>${text}</span>`).join("");
+  renderResultActions([
+    { action: "title", label: "Titleへ戻る" },
+    { action: "stageSelect", label: "Stage Selectへ戻る" },
+  ]);
+}
+
+function showTourFailedResult() {
+  showScreen("resultScreen");
+  state.runOver = true;
+  state.resultAction = "tourRestart";
+  els.resultBadge.textContent = "Tour Mode";
+  els.resultTitle.textContent = "TOUR FAILED";
+  els.restartButton.textContent = "Tour Modeをもう一度";
+  els.resultText.textContent = `${state.enemy?.name || "Enemy"}に押し切られました。`;
+  els.runSummary.innerHTML = [
+    `Reached: Stage ${state.tourStageIndex + 1} / ${TOUR_STAGE_IDS.length}`,
+    `Battle: ${Math.min(state.encounterIndex + 1, currentEncounters().length)} / ${currentEncounters().length}`,
+    `Leader: ${state.leader?.name || "-"}`,
+    `Deck: ${state.masterDeck.length}`,
+    `Relic Count: ${state.relics.length}`,
+  ].map((text) => `<span>${text}</span>`).join("");
+  renderResultActions([
+    { action: "title", label: "Titleへ戻る" },
+    { action: "stageSelect", label: "Stage Selectへ戻る" },
+  ]);
+}
+
 function loseRun() {
   state.inBattle = false;
+  if (state.gameMode === "tour") {
+    showTourFailedResult();
+    return;
+  }
   showResult(false);
 }
 
@@ -2608,13 +2805,16 @@ function hasRelic(id) {
 
 function renderBattle() {
   const enemyPct = (state.enemy.hp / state.enemy.maxHp) * 100;
-  els.encounterLabel.textContent = state.enemy.enemyType === "elite"
+  const battleTypeLabel = state.enemy.enemyType === "elite"
     ? "Elite Battle"
     : currentEncounters()[state.encounterIndex].kind === "boss"
     ? "Boss Battle"
     : currentEncounters()[state.encounterIndex].kind === "midboss"
       ? "Mid Boss"
       : `Battle ${state.encounterIndex + 1}`;
+  els.encounterLabel.textContent = state.gameMode === "tour"
+    ? `TOUR MODE - Stage ${state.tourStageIndex + 1}/3 ${currentStage().name} - Battle ${state.encounterIndex + 1}/5 - ${battleTypeLabel}`
+    : battleTypeLabel;
   els.enemyArea.dataset.enemy = state.enemy.id;
   const enemyBanner = ENEMY_BANNERS[state.enemy.id];
   if (els.enemyBannerImage && enemyBanner) {
@@ -2793,9 +2993,58 @@ function bump(element) {
   element.classList.add("bump");
 }
 
+function renderResultActions(actions = []) {
+  if (!els.resultActions) return;
+  els.resultActions.innerHTML = actions.map((item) => `
+    <button class="secondary-button" type="button" data-result-action="${item.action}">
+      ${item.label}
+    </button>
+  `).join("");
+}
+
+function continueTourToNextStage() {
+  const nextStageId = TOUR_STAGE_IDS[state.tourStageIndex];
+  state.stageId = nextStageId;
+  state.encounterIndex = 0;
+  state.pendingVictoryReward = null;
+  state.pendingRewardLog = `Stage Clear Bonus: HP +${state.lastStageClear?.healAmount || 0}`;
+  state.resultAction = "title";
+  state.runOver = false;
+  renderResultActions([]);
+  startEncounter();
+}
+
+function restartTourMode() {
+  const leaderId = state.leader?.id;
+  state.gameMode = "tour";
+  state.tourStageIndex = 0;
+  state.stageId = TOUR_STAGE_IDS[0];
+  if (leaderId) {
+    chooseLeader(leaderId);
+    return;
+  }
+  renderLeaders();
+  showScreen("leaderScreen");
+}
+
+function returnToTitle() {
+  resetRun();
+  renderResultActions([]);
+  els.restartButton.textContent = "Back to Title";
+  showScreen("titleScreen");
+}
+
+function returnToStageSelect() {
+  resetRun();
+  renderResultActions([]);
+  showStageSelect();
+}
+
 function showResult(victory, shouldPlayVictorySe = true) {
   showScreen("resultScreen");
   state.runOver = true;
+  state.resultAction = "title";
+  renderResultActions([]);
   if (victory && shouldPlayVictorySe) playSe("victory");
   els.resultBadge.textContent = victory ? "Victory" : "Defeat";
   els.resultTitle.textContent = victory ? "Neon Void Idol撃破！" : "ライブ失敗";
@@ -2819,25 +3068,53 @@ els.startButton.addEventListener("click", () => {
 
 els.restartButton.addEventListener("click", () => {
   unlockAudio();
-  const shouldReturnToStageSelect = state.resultReturnToStageSelect;
-  resetRun();
-  if (shouldReturnToStageSelect) {
-    state.resultReturnToStageSelect = false;
-    showStageSelect();
+  if (state.resultAction === "tourNext") {
+    continueTourToNextStage();
     return;
   }
-  els.restartButton.textContent = "Back to Title";
-  showScreen("titleScreen");
+  if (state.resultAction === "tourRestart") {
+    restartTourMode();
+    return;
+  }
+  if (state.resultAction === "stageSelect" || state.resultReturnToStageSelect) {
+    returnToStageSelect();
+    return;
+  }
+  returnToTitle();
+});
+
+els.resultActions?.addEventListener("click", (event) => {
+  unlockAudio();
+  const button = event.target.closest("[data-result-action]");
+  if (!button) return;
+  if (button.dataset.resultAction === "title") {
+    returnToTitle();
+    return;
+  }
+  if (button.dataset.resultAction === "stageSelect") {
+    returnToStageSelect();
+  }
 });
 
 els.stageList?.addEventListener("click", (event) => {
   unlockAudio();
+  const tourButton = event.target.closest("[data-tour]");
+  if (tourButton) {
+    if (!state.tourUnlocked) return;
+    state.gameMode = "tour";
+    state.tourStageIndex = 0;
+    state.stageId = TOUR_STAGE_IDS[0];
+    renderLeaders();
+    showScreen("leaderScreen");
+    return;
+  }
   const button = event.target.closest("[data-stage]");
   if (!button) return;
   const stage = stageById(button.dataset.stage);
   if (!isStageUnlocked(stage) || !stage.playable) return;
+  state.gameMode = "stage";
+  state.tourStageIndex = 0;
   state.stageId = stage.id;
-  resetRun();
   renderLeaders();
   showScreen("leaderScreen");
 });
@@ -2905,15 +3182,20 @@ window.CatBandDebug = {
   state,
   renderStageSelect,
   resetStageUnlocks,
+  resetTourUnlock,
+  unlockTourModeForDebug,
   hasTag,
   hasAnyTag,
   countTags,
 };
 window.resetStageUnlocks = resetStageUnlocks;
+window.resetTourUnlock = resetTourUnlock;
+window.unlockTourModeForDebug = unlockTourModeForDebug;
 
 initAudio();
 setupAudioControls();
 state.unlockedStages = loadStageUnlocks();
+state.tourUnlocked = loadTourUnlock();
 document.addEventListener("pointerdown", unlockAudio, { once: true });
 renderLeaders();
 renderStageSelect();

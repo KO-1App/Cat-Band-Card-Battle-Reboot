@@ -210,6 +210,18 @@ h3 {
   gap: 12px;
 }
 
+.stage-section {
+  display: grid;
+  gap: 10px;
+}
+
+.stage-section-title {
+  margin: 4px 2px 0;
+  font-size: 0.92rem;
+  color: var(--purple);
+  text-transform: uppercase;
+}
+
 .stage-card {
   display: grid;
   gap: 10px;
@@ -245,6 +257,13 @@ h3 {
     rgba(255, 253, 244, 0.95);
 }
 
+.tour-card {
+  background:
+    linear-gradient(135deg, rgba(248, 82, 151, 0.22), transparent 38%),
+    linear-gradient(225deg, rgba(72, 218, 232, 0.2), transparent 42%),
+    rgba(255, 253, 244, 0.98);
+}
+
 .stage-status,
 .stage-boss {
   display: inline-flex;
@@ -275,6 +294,27 @@ h3 {
   filter: grayscale(0.7);
   opacity: 0.68;
   transform: none;
+}
+
+.result-actions {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.result-actions:empty {
+  display: none;
+}
+
+.secondary-button {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .leader-card {
