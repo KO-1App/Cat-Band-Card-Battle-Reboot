@@ -28,6 +28,12 @@ const CARD_LIBRARY = {
   whiteNoiseWall: { id: "whiteNoiseWall", name: "White Noise Wall", type: "skill", cost: 1, rarity: "common", block: 7, enemyWeak: 1, chorusGain: 4, tags: ["DEFENSE", "DEBUFF", "NOISE"] },
   riotChorus: { id: "riotChorus", name: "Riot Chorus", type: "attack", cost: 2, rarity: "epic", damage: 14, chorusGain: 18, tags: ["ATTACK", "CHORUS", "CROWD"] },
   setlistShuffle: { id: "setlistShuffle", name: "Setlist Shuffle", type: "skill", cost: 0, rarity: "rare", draw: 1, chorusGain: 5, tags: ["DRAW", "CHORUS"] },
+  signalJam: { id: "signalJam", name: "Signal Jam", type: "attack", cost: 1, rarity: "rare", damage: 6, enemyWeak: 2, draw: 1, chorusGain: 5, tags: ["ATTACK", "DEBUFF", "DRAW", "NOISE"] },
+  feedbackLoopCard: { id: "feedbackLoopCard", name: "Feedback Loop", type: "skill", cost: 1, rarity: "rare", draw: 2, nextAttackDamageBonus: 6, chorusGain: 5, tags: ["DRAW", "BUFF", "NOISE"] },
+  staticStorm: { id: "staticStorm", name: "Static Storm", type: "attack", cost: 2, rarity: "epic", damage: 4, hits: 3, enemyWeak: 2, chorusGain: 10, tags: ["ATTACK", "DEBUFF", "NOISE"] },
+  recklessCharge: { id: "recklessCharge", name: "Reckless Charge", type: "attack", cost: 1, rarity: "common", damage: 12, recoil: 2, chorusGain: 6, tags: ["ATTACK", "RISK"] },
+  burnoutSolo: { id: "burnoutSolo", name: "Burnout Solo", type: "attack", cost: 2, rarity: "rare", damage: 22, recoil: 4, draw: 1, chorusGain: 10, tags: ["ATTACK", "DRAW", "RISK", "GUITAR"] },
+  lastEncore: { id: "lastEncore", name: "Last Encore", type: "attack", cost: 2, rarity: "epic", damage: 30, recoil: 8, chorusGain: 15, tags: ["ATTACK", "RISK", "CHORUS"] },
 };
 
 const LEADERS = [
@@ -619,6 +625,7 @@ const audioState = {
     requestedType: null,
     requestedMeta: {},
     retryQueued: false,
+    healthCheckId: 0,
   },
 };
 
@@ -683,6 +690,7 @@ const state = {
   encounterIndex: 0,
   turn: 1,
   cardsPlayedThisTurn: 0,
+  nextAttackDamageBonus: 0,
   inBattle: false,
   runOver: false,
   pendingVictoryReward: null,
@@ -948,6 +956,9 @@ function setBgmVolume(value, shouldSave = true) {
   if (els.bgmVolume) els.bgmVolume.value = String(percent);
   if (els.bgmVolumeValue) els.bgmVolumeValue.textContent = `${percent}%`;
   if (audioState.bgm.currentAudio) audioState.bgm.currentAudio.volume = audioState.bgmVolume;
+  audioState.bgm.previousAudios.forEach((audio) => {
+    audio.volume = Math.min(audio.volume, audioState.bgmVolume);
+  });
   if (shouldSave) localStorage.setItem("bgmVolume", String(percent));
 }
 
@@ -1021,6 +1032,22 @@ function rememberRequestedBGM(type, meta = {}) {
   audioState.bgm.requestedMeta = { ...meta };
 }
 
+function scheduleBgmHealthCheck(type, meta = {}) {
+  const checkId = audioState.bgm.healthCheckId + 1;
+  audioState.bgm.healthCheckId = checkId;
+  window.setTimeout(() => {
+    if (checkId !== audioState.bgm.healthCheckId) return;
+    if (!audioState.unlocked || state.runOver || audioState.bgm.requestedType !== type) return;
+    const audio = audioState.bgm.currentAudio;
+    const wrongTrack = audioState.bgm.currentType !== type;
+    const silent = !audio || audio.paused || audio.ended || audio.readyState === 0;
+    if (!wrongTrack && !silent) return;
+    console.warn(`[BGM] health retry: ${bgmFileName(type)}`);
+    audioState.bgm.fading = false;
+    fadeToBGM(type, meta);
+  }, 1200);
+}
+
 function clearCurrentBgmIfAudio(audio) {
   if (audioState.bgm.currentAudio !== audio) return;
   audioState.bgm.currentAudio = null;
@@ -1040,11 +1067,17 @@ function queueBgmRetry(type, meta = {}) {
 }
 
 function startBgmAudio(audio, type, meta = {}, options = {}) {
-  audioState.bgm.currentType = type;
-  audioState.bgm.currentAudio = audio;
+  if (!options.deferCurrent) {
+    audioState.bgm.currentType = type;
+    audioState.bgm.currentAudio = audio;
+  }
   console.log(bgmDebugLabel(type, meta));
   return audio.play().then(() => {
     audioState.bgm.retryQueued = false;
+    if (options.deferCurrent) {
+      audioState.bgm.currentType = type;
+      audioState.bgm.currentAudio = audio;
+    }
     if (!options.keepVolume) audio.volume = audioState.bgmVolume;
     return audio;
   }).catch((error) => {
@@ -1070,6 +1103,7 @@ function playBGM(type, meta = {}) {
     return;
   }
   rememberRequestedBGM(type, meta);
+  scheduleBgmHealthCheck(type, meta);
   if (!audioState.unlocked) {
     queueBgmRetry(type, meta);
     return;
@@ -1080,7 +1114,10 @@ function playBGM(type, meta = {}) {
     return;
   }
 
-  stopBGM();
+  if (audioState.bgm.currentAudio) {
+    fadeToBGM(type, meta);
+    return;
+  }
   const audio = createBgmAudio(type);
   if (!audio) return;
 
@@ -1116,6 +1153,7 @@ function fadeToBGM(type, meta = {}) {
     return;
   }
   rememberRequestedBGM(type, meta);
+  scheduleBgmHealthCheck(type, meta);
   if (!audioState.unlocked) {
     queueBgmRetry(type, meta);
     return;
@@ -1135,54 +1173,49 @@ function fadeToBGM(type, meta = {}) {
   audioState.bgm.fading = true;
   const fadeId = audioState.bgm.fadeId + 1;
   audioState.bgm.fadeId = fadeId;
-  const startVolume = current.volume;
-  const startedAt = performance.now();
-  const fadeOut = (now) => {
-    if (fadeId !== audioState.bgm.fadeId) {
-      current.pause();
-      return;
-    }
-    const progress = Math.min(1, (now - startedAt) / BGM_FADE_MS);
-    current.volume = startVolume * (1 - progress);
-    if (progress < 1) {
-      requestAnimationFrame(fadeOut);
-      return;
-    }
-    current.pause();
-    current.currentTime = 0;
-    startBgmFadeIn(type, meta, fadeId);
-  };
-  requestAnimationFrame(fadeOut);
-}
-
-function startBgmFadeIn(type, meta = {}, fadeId = audioState.bgm.fadeId) {
-  if (fadeId !== audioState.bgm.fadeId) return;
-  cleanupBgmAudios();
   const nextAudio = createBgmAudio(type, 0);
   if (!nextAudio) {
-    audioState.bgm.currentAudio = null;
-    audioState.bgm.currentType = null;
     audioState.bgm.fading = false;
     return;
   }
-  startBgmAudio(nextAudio, type, meta, { keepVolume: true }).then((startedAudio) => {
-    if (!startedAudio || fadeId !== audioState.bgm.fadeId || audioState.bgm.currentAudio !== nextAudio) return;
+  const startVolume = current.volume;
+  startBgmAudio(nextAudio, type, meta, { keepVolume: true, deferCurrent: true }).then((startedAudio) => {
+    if (!startedAudio) {
+      if (fadeId === audioState.bgm.fadeId) {
+        audioState.bgm.fading = false;
+        current.volume = audioState.bgmVolume;
+        resumeCurrentBGM(audioState.bgm.currentType || audioState.bgm.requestedType || type, audioState.bgm.requestedMeta || {});
+      }
+      return;
+    }
+    if (fadeId !== audioState.bgm.fadeId) {
+      startedAudio.pause();
+      startedAudio.currentTime = 0;
+      return;
+    }
+    audioState.bgm.currentType = type;
+    audioState.bgm.currentAudio = startedAudio;
+    audioState.bgm.previousAudios = [current, ...audioState.bgm.previousAudios.filter((audio) => audio !== current)];
     const startedAt = performance.now();
-    const fadeIn = (now) => {
-      if (fadeId !== audioState.bgm.fadeId || audioState.bgm.currentAudio !== nextAudio) {
-        nextAudio.pause();
+    const crossFade = (now) => {
+      if (fadeId !== audioState.bgm.fadeId || audioState.bgm.currentAudio !== startedAudio) {
+        startedAudio.pause();
         return;
       }
       const progress = Math.min(1, (now - startedAt) / BGM_FADE_MS);
-      nextAudio.volume = audioState.bgmVolume * progress;
+      current.volume = startVolume * (1 - progress);
+      startedAudio.volume = audioState.bgmVolume * progress;
       if (progress < 1) {
-        requestAnimationFrame(fadeIn);
+        requestAnimationFrame(crossFade);
         return;
       }
-      nextAudio.volume = audioState.bgmVolume;
+      current.pause();
+      current.currentTime = 0;
+      startedAudio.volume = audioState.bgmVolume;
       audioState.bgm.fading = false;
+      cleanupBgmAudios(startedAudio);
     };
-    requestAnimationFrame(fadeIn);
+    requestAnimationFrame(crossFade);
   });
 }
 
@@ -1346,6 +1379,7 @@ function describeCard(c) {
   if (c.heal) parts.push("HP +" + c.heal);
   if (c.draw) parts.push(c.draw + "ドロー");
   if (c.energyGain) parts.push("Energy +" + c.energyGain);
+  if (c.nextAttackDamageBonus) parts.push("次の攻撃カード +" + c.nextAttackDamageBonus);
   if (c.enemyWeak) parts.push("弱体 " + c.enemyWeak);
   if (c.recoil) parts.push("反動 " + c.recoil);
   if (c.chorusGain) parts.push("Chorus +" + c.chorusGain);
@@ -1445,6 +1479,7 @@ function resetRun(options = {}) {
     encounterIndex: 0,
     turn: 1,
     cardsPlayedThisTurn: 0,
+    nextAttackDamageBonus: 0,
     inBattle: false,
     runOver: false,
     pendingVictoryReward: null,
@@ -1771,12 +1806,20 @@ function playCard(index) {
     relicLogs.push("Triple Encore Patch: 3+ tags ダメージ +3 / ブロック +3");
   }
 
+  let firstHitBonus = 0;
+  if (c.type === "attack" && state.nextAttackDamageBonus > 0) {
+    firstHitBonus = state.nextAttackDamageBonus;
+    state.nextAttackDamageBonus = 0;
+    damageModifiers.push(`Feedback Loop +${firstHitBonus}`);
+    relicLogs.push(`Feedback Loop: 次の攻撃 +${firstHitBonus}`);
+  }
+
   let actualCardDamage = 0;
   let damageInfo = calculateCardDamage(c, { bonusDamage, modifiers: damageModifiers });
   if (c.damage) {
     playEffect("attack", "enemy", { duration: 360 });
     for (let i = 0; i < damageInfo.hits; i += 1) {
-      actualCardDamage += dealDamage(damageInfo.damagePerHit, { final: true });
+      actualCardDamage += dealDamage(damageInfo.damagePerHit + (i === 0 ? firstHitBonus : 0), { final: true });
     }
     state.playerAttackedThisTurn = true;
   }
@@ -1800,6 +1843,11 @@ function playCard(index) {
     const gained = gainEnergy(c.energyGain);
     relicLogs.push(gained > 0 ? `Energy +${gained}` : "Energyは最大");
   }
+  if (c.nextAttackDamageBonus) {
+    const before = state.nextAttackDamageBonus || 0;
+    state.nextAttackDamageBonus = Math.max(before, c.nextAttackDamageBonus);
+    relicLogs.push(before >= c.nextAttackDamageBonus ? `次の攻撃 +${before}維持` : `次の攻撃 +${c.nextAttackDamageBonus}`);
+  }
   if (c.chorusGain) gainChorus(c.chorusGain + bonusChorus);
 
   const cardLog = c.damage
@@ -1821,6 +1869,7 @@ function endTurn() {
   state.discardPile.push(...state.hand.filter(Boolean));
   state.hand = [];
   state.blackoutSlots = [];
+  state.nextAttackDamageBonus = 0;
   const voidMessage = handleVoidPressureOnEndTurn();
   const bassMessage = handleBassPressureOnEndTurn();
   if (state.hp <= 0) {
@@ -2320,6 +2369,7 @@ function renderStatusBadges(entity) {
     const playerBonusAttack = state.playerBonusAttack || 0;
     return [
       state.playerWeak > 0 ? '<span class="status-chip status-weak">💀 自分の弱体 ' + state.playerWeak + '</span>' : "",
+      state.nextAttackDamageBonus > 0 ? '<span class="status-chip status-attack-up">⚡ 次の攻撃 +' + state.nextAttackDamageBonus + '</span>' : "",
       playerBonusAttack > 0 ? '<span class="status-chip status-attack-up">⚡ 攻撃 +' + playerBonusAttack + '</span>' : "",
       playerBonusAttack < 0 ? '<span class="status-chip status-attack-down">📉 攻撃 ' + playerBonusAttack + '</span>' : "",
     ].filter(Boolean).join("");
