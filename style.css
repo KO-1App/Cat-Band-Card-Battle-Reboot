@@ -1417,6 +1417,64 @@ body.boss-gimmick-shake .app {
   pointer-events: none;
 }
 
+.victory-moment {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 3px;
+  padding: 16px;
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.72), 0 0 18px rgba(255, 255, 255, 0.86);
+  background:
+    radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.56), transparent 26%),
+    linear-gradient(115deg, transparent 26%, rgba(255, 235, 92, 0.52) 38%, transparent 50%),
+    linear-gradient(245deg, transparent 28%, rgba(255, 83, 164, 0.44) 42%, transparent 56%);
+  animation: victoryMoment 0.96s ease-out forwards;
+}
+
+.victory-moment span {
+  padding: 3px 12px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #26ddff, #ff4fa7);
+  font-size: clamp(0.75rem, 3vw, 0.95rem);
+  font-weight: 1000;
+  letter-spacing: 0;
+}
+
+.victory-moment strong {
+  font-size: clamp(1.4rem, 7vw, 2.45rem);
+  line-height: 1;
+}
+
+.victory-moment em {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 253, 244, 0.9);
+  color: var(--ink);
+  font-style: normal;
+  font-size: clamp(0.76rem, 3vw, 0.96rem);
+  font-weight: 950;
+  text-shadow: none;
+}
+
+.enemy-area.enemy-defeated .enemy-banner-frame {
+  animation: enemyDefeatedBanner 0.92s ease-out forwards;
+}
+
+.enemy-area.enemy-defeated .enemy-info-panel {
+  animation: victoryInfoGlow 0.92s ease-out forwards;
+}
+
+body.victory-shake .app {
+  animation: victoryShake 0.2s ease-out;
+}
+
 .enemy-area.fx-attack {
   animation: lightShake 0.28s ease-out;
 }
@@ -2023,6 +2081,65 @@ body.boss-gimmick-shake .app {
   }
 }
 
+@keyframes victoryMoment {
+  0% {
+    opacity: 0;
+    filter: brightness(1.5);
+    transform: scale(0.9);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  72% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(1);
+    transform: scale(1.04);
+  }
+}
+
+@keyframes enemyDefeatedBanner {
+  0% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  22% {
+    filter: brightness(1.95) saturate(1.3);
+    transform: scale(1.018);
+  }
+  100% {
+    filter: brightness(0.78) saturate(0.8);
+    transform: scale(1.012);
+  }
+}
+
+@keyframes victoryInfoGlow {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  36% {
+    box-shadow: 0 0 0 3px rgba(255, 235, 92, 0.55), 0 0 24px rgba(255, 83, 164, 0.5);
+  }
+}
+
+@keyframes victoryShake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  35% {
+    transform: translate(2px, -1px);
+  }
+  70% {
+    transform: translate(-2px, 1px);
+  }
+}
+
 @keyframes chorusDarkCue {
   0% {
     opacity: 0;
@@ -2348,12 +2465,14 @@ body.boss-gimmick-shake .app {
   .enemy-area.fx-damage,
   .player-area.fx-damage,
   body.chorus-shake .app,
+  body.victory-shake .app,
   body.boss-gimmick-shake .app {
     animation: none;
   }
 
   .battle-effect,
   .damage-pop,
+  .victory-moment,
   .chorus-overlay.active,
   .boss-gimmick-effect {
     animation-duration: 0.18s;

@@ -661,6 +661,7 @@ const state = {
   chorusReadyAnnounced: false,
   chorusTensionMarks: [],
   chorusAnimating: false,
+  victoryAnimating: false,
   chorusDamageActive: false,
   pendingChorusDamage: 0,
   maxEnergy: 3,
@@ -1421,6 +1422,7 @@ function resetRun(options = {}) {
     chorusReadyAnnounced: false,
     chorusTensionMarks: [],
     chorusAnimating: false,
+    victoryAnimating: false,
     chorusDamageActive: false,
     pendingChorusDamage: 0,
     maxEnergy: 3,
@@ -2570,14 +2572,49 @@ function triggerAbyssResonance() {
   log(`Abyss Resonance! ホールが重低音で崩れ始めた！ / 攻撃 +2 / ${pressureLog}`);
 }
 
-function winBattle() {
+async function winBattle() {
+  if (state.victoryAnimating || !state.enemy) return;
   state.inBattle = false;
+  state.victoryAnimating = true;
   ensureHandSlots();
   state.discardPile.push(...state.hand.filter(Boolean));
   state.hand = [];
   const encounter = currentEncounters()[state.encounterIndex];
   state.pendingVictoryReward = encounter.reward;
+  renderBattle();
+  log(`${state.enemy.name}を撃破！`);
+  await playVictoryMoment(encounter);
+  state.victoryAnimating = false;
   showBattleVictory(encounter);
+}
+
+function victoryRewardLabel(encounter) {
+  if (encounter.reward === "relic") return "レリック発見！";
+  if (encounter.reward === "stageClear" || encounter.reward === "win") return "ステージクリア！";
+  return "カード報酬を獲得！";
+}
+
+function playVictoryMoment(encounter) {
+  return new Promise((resolve) => {
+    const layer = document.createElement("div");
+    layer.className = "victory-moment";
+    layer.setAttribute("aria-hidden", "true");
+    layer.innerHTML = `
+      <span>LIVE CLEAR!</span>
+      <strong>${state.enemy.name} 撃破！</strong>
+      <em>${victoryRewardLabel(encounter)}</em>
+    `;
+    els.enemyArea.classList.add("enemy-defeated");
+    document.body.classList.add("victory-shake");
+    els.enemyArea.appendChild(layer);
+    playEffect("chorusHit", "enemy", { amount: "CLEAR", label: "LIVE", duration: 760 });
+    window.setTimeout(() => {
+      layer.remove();
+      els.enemyArea.classList.remove("enemy-defeated");
+      document.body.classList.remove("victory-shake");
+      resolve();
+    }, 960);
+  });
 }
 
 function showBattleVictory(encounter) {
@@ -2585,8 +2622,9 @@ function showBattleVictory(encounter) {
   const isBoss = encounter.reward === "stageClear" || encounter.reward === "win";
   els.battleVictoryTitle.textContent = isBoss ? "ファイナルライブ成功！" : "ライブ成功！";
   els.battleVictoryText.textContent = isBoss
-    ? `${state.enemy.name}を倒した！タップしてリザルトへ。`
-    : `${state.enemy.name}を倒した！タップして報酬へ。`;
+    ? `${state.enemy.name}を倒した！ステージクリアです。`
+    : `${state.enemy.name}を倒した！${victoryRewardLabel(encounter)}`;
+  els.battleVictoryButton.textContent = isBoss ? "リザルトへ" : encounter.reward === "relic" ? "レリックへ" : "報酬へ";
   showScreen("battleVictoryScreen");
 }
 
