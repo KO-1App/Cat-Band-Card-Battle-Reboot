@@ -89,7 +89,7 @@
           <div class="player-info-panel">
             <div class="chips">
               <span class="hp-chip">❤️ <strong id="playerHpText">70 / 70</strong></span>
-              <span class="block-chip">🛡 <strong id="blockText">0</strong></span>
+              <span class="block-chip"><span class="stat-icon" aria-hidden="true">🛡️</span><strong id="blockText">0</strong></span>
               <span class="energy-chip">⚡ <strong id="energyText">3 / 3</strong></span>
             </div>
             <div class="chorus-wrap">
@@ -107,7 +107,7 @@
           <div id="leaderInfoPopup" class="leader-info-popup" hidden></div>
         </section>
 
-        <section class="log-box">
+        <section class="log-box" id="logBox" role="button" tabindex="0" aria-label="ログ履歴を表示">
           <p id="battleLog">手札からカードを選んで演奏しよう。</p>
         </section>
 

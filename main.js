@@ -70,18 +70,18 @@ const LEADERS = [
     id: "ba",
     name: "白猫Ba",
     emoji: "🐾🎵",
-    trait: "弱体付与が得意。弱体効果 +1ターン。",
+    trait: "弱体付与が得意。弱体効果 +1ターン。弱体中の敵への与ダメージ+20%。",
     passiveName: "Deep Resonance",
-    passiveDescription: "弱体付与ターン+1",
+    passiveDescription: "弱体付与ターン+1。弱体中の敵への与ダメージ+20%",
     chorusName: "Bass Drop",
     chorusDescription: "18ダメージ / 弱体 4",
     chorusIcon: "🎵",
     chorusTheme: "bass",
     deck: ["bassHit", "bassHit", "bassHit", "bassHit", "lowGroove", "lowGroove", "guardBeat", "guardBeat", "scratch", "scratch"],
     chorus() {
-      dealDamage(18);
+      const dealt = dealDamage(18);
       const weakResult = applyEnemyWeak(4);
-      log(`Bass Drop: 18ダメージ / ${weakResult.changed ? `弱体 ${weakResult.value}` : "弱体維持"}`);
+      log(`Bass Drop: ${dealt}ダメージ / ${weakResult.changed ? `弱体 ${weakResult.value}` : "弱体維持"}`);
     },
   },
   {
@@ -687,6 +687,7 @@ const state = {
   runOver: false,
   pendingVictoryReward: null,
   pendingRewardLog: "",
+  logHistory: [],
   selectedRelicId: null,
   gameMode: "stage",
   tourStageIndex: 0,
@@ -738,6 +739,7 @@ const els = {
   seVolumeValue: document.querySelector("#seVolumeValue"),
   relicStrip: document.querySelector("#relicStrip"),
   relicDetail: document.querySelector("#relicDetail"),
+  logBox: document.querySelector("#logBox"),
   battleLog: document.querySelector("#battleLog"),
   pileText: document.querySelector("#pileText"),
   hand: document.querySelector("#hand"),
@@ -1368,6 +1370,11 @@ function calculateCardDamage(c, context = {}) {
     damagePerHit += 1;
     modifiers.push("Guitar Virtuoso +1");
   }
+  const resonanceDamage = applyDeepResonanceDamage(damagePerHit);
+  if (resonanceDamage !== damagePerHit) {
+    modifiers.push(`Deep Resonance ${damagePerHit}→${resonanceDamage}`);
+    damagePerHit = resonanceDamage;
+  }
   if ((state.playerWeak || 0) > 0 && !context.ignorePlayerWeak) {
     const beforeWeak = damagePerHit;
     damagePerHit = Math.max(0, Math.floor(damagePerHit * 0.75));
@@ -1442,6 +1449,7 @@ function resetRun(options = {}) {
     runOver: false,
     pendingVictoryReward: null,
     pendingRewardLog: "",
+    logHistory: [],
     selectedRelicId: null,
     gameMode: keepMode ? mode : "stage",
     tourStageIndex: keepMode ? tourStageIndex : 0,
@@ -2176,8 +2184,15 @@ function formatIncomingDamageLog(name, attackInfo, result) {
 }
 
 function playerAttackAmount(baseDamage) {
-  if ((state.playerWeak || 0) <= 0) return baseDamage;
-  return Math.max(0, Math.floor(baseDamage * 0.75));
+  let amount = applyDeepResonanceDamage(baseDamage);
+  if ((state.playerWeak || 0) <= 0) return amount;
+  return Math.max(0, Math.floor(amount * 0.75));
+}
+
+function applyDeepResonanceDamage(amount) {
+  if (state.leader?.id !== "ba") return amount;
+  if ((state.enemy?.weak || 0) <= 0) return amount;
+  return Math.max(0, Math.floor(amount * 1.2));
 }
 
 function tickEnemyWeak() {
@@ -2314,7 +2329,11 @@ function renderStatusBadges(entity) {
 
 
 function dealDamage(amount, options = {}) {
-  const finalAmount = options.final || state.chorusDamageActive ? amount : playerAttackAmount(amount);
+  const finalAmount = options.final
+    ? amount
+    : state.chorusDamageActive
+      ? applyDeepResonanceDamage(amount)
+      : playerAttackAmount(amount);
   if (finalAmount < amount) playEffect("debuff", "player", { amount: state.playerWeak, label: "Weak", duration: 420 });
   amount = finalAmount;
   const blocked = Math.min(state.enemy.block, amount);
@@ -3033,12 +3052,52 @@ function hideLeaderInfoPopup() {
   els.leaderInfoPopup.innerHTML = "";
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[char]));
+}
+
+function showLogOverlay() {
+  if (!state.logHistory.length) return;
+  const overlay = document.createElement("div");
+  overlay.className = "log-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "ログ履歴");
+  overlay.innerHTML = `
+    <div class="log-panel">
+      <button class="log-close" type="button" aria-label="閉じる">×</button>
+      <div class="log-panel-head">
+        <span>ログ履歴</span>
+        <strong>最新 ${state.logHistory.length}件</strong>
+      </div>
+      <ol class="log-history-list">
+        ${state.logHistory.slice().reverse().map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}
+      </ol>
+    </div>
+  `;
+  overlay.addEventListener("click", (event) => {
+    if (!event.target.closest(".log-close") && event.target.closest(".log-panel")) return;
+    overlay.remove();
+  });
+  document.body.appendChild(overlay);
+}
+
 function toggleRelicDetail(id) {
   showRelicOverlay(id);
 }
 
 function log(message) {
   els.battleLog.textContent = message;
+  if (message) {
+    state.logHistory.push(message);
+    if (state.logHistory.length > 30) state.logHistory.shift();
+  }
 }
 
 function bump(element) {
@@ -3211,6 +3270,13 @@ els.leaderInfoButton.addEventListener("click", () => {
 els.leaderInfoPopup.addEventListener("click", (event) => {
   if (!event.target.closest(".leader-info-close") && event.target.closest(".leader-info-panel")) return;
   hideLeaderInfoPopup();
+});
+
+els.logBox?.addEventListener("click", showLogOverlay);
+els.logBox?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
+  showLogOverlay();
 });
 
 els.cardRewardList.addEventListener("click", (event) => {
