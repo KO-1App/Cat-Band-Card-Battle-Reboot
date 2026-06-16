@@ -407,7 +407,7 @@ h3 {
 }
 
 .tag,
-.chips span,
+.chips > span,
 .relic-chip {
   padding: 6px 9px;
   border-radius: 999px;
@@ -1040,7 +1040,7 @@ h3 {
   min-height: 21px;
 }
 
-.chips span {
+.chips > span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2705,7 +2705,7 @@ body.victory-shake .app {
     font-size: 0.78rem;
   }
 
-  .chips span {
+  .chips > span {
     min-height: 18px;
     padding: 1px 4px;
     font-size: 0.58rem;
