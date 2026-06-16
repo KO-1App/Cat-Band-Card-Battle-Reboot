@@ -574,6 +574,7 @@ const SE_PATHS = {
 };
 
 const BGM = {
+  title: "assets/audio/bgm/title.mp3",
   normal: "assets/audio/bgm/neon-normal.mp3",
   miniboss: "assets/audio/bgm/neon-miniboss.mp3",
   boss: "assets/audio/bgm/neon-boss.mp3",
@@ -589,6 +590,7 @@ const BGM = {
 };
 
 const BGM_READY = {
+  title: true,
   normal: true,
   miniboss: true,
   boss: true,
@@ -991,6 +993,8 @@ function unlockAudio() {
   audioState.unlocked = true;
   if (audioState.bgm.requestedType && !audioState.bgm.currentAudio) {
     fadeToBGM(audioState.bgm.requestedType, audioState.bgm.requestedMeta || {});
+  } else if (document.querySelector("#titleScreen")?.classList.contains("active")) {
+    playTitleBGM();
   }
 }
 
@@ -1246,6 +1250,10 @@ function playEncounterBGM(encounter) {
     return;
   }
   fadeToBGM(type, { stageId: currentStage().id, battleType: role });
+}
+
+function playTitleBGM() {
+  fadeToBGM("title", { stageId: "title", battleType: "title" });
 }
 
 function debugCurrentBGM() {
@@ -3195,6 +3203,7 @@ function returnToTitle() {
   renderResultActions([]);
   els.restartButton.textContent = "タイトルへ戻る";
   showScreen("titleScreen");
+  playTitleBGM();
 }
 
 function returnToStageSelect() {
@@ -3347,7 +3356,7 @@ window.CatBandDebug = {
   leaders: LEADERS,
   stages: STAGES,
   chorusEffects,
-  bgm: { BGM, BGM_READY, playBGM, stopBGM, fadeToBGM, playEncounterBGM, debugCurrentBGM },
+  bgm: { BGM, BGM_READY, playBGM, stopBGM, fadeToBGM, playEncounterBGM, playTitleBGM, debugCurrentBGM },
   audio: { audioState, setBgmVolume, setSeVolume },
   state,
   renderStageSelect,
@@ -3369,3 +3378,4 @@ state.tourUnlocked = loadTourUnlock();
 document.addEventListener("pointerdown", unlockAudio, { once: true });
 renderLeaders();
 renderStageSelect();
+playTitleBGM();

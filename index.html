@@ -10,12 +10,37 @@
     <main class="app">
       <section id="titleScreen" class="screen active">
         <div class="title-stage">
-          <p class="eyebrow">小型ローグライクカードバトル</p>
-          <h1>Cat Band<br />Card Battle<br />Reboot</h1>
-          <p class="lead">
-            Energyを使って手札からカードを演奏。Chorusの切りどころと報酬選択で、Neon Void Idol撃破を目指そう。
-          </p>
-          <button id="startButton" class="primary-button">ステージ選択へ</button>
+          <div class="title-hero">
+            <img class="title-main-image" src="assets/leaders/mike-gt-banner.jpg" alt="猫バンドのライブバナー" />
+            <div class="title-badges" aria-hidden="true">
+              <span>🎤</span>
+              <span>🎸</span>
+              <span>🎵</span>
+              <span>🥁</span>
+            </div>
+            <div class="title-copy">
+              <p class="eyebrow">スマホ向けローグライクカードバトル</p>
+              <h1>Cat Band<br />Card Battle<br />Reboot</h1>
+              <p class="lead">
+                手札5枚とEnergyを読み切って、Chorusでライブをひっくり返す猫バンドカードバトル。
+              </p>
+            </div>
+          </div>
+          <div class="title-feature-grid" aria-label="ゲーム内容">
+            <div>
+              <strong>3 Stages</strong>
+              <span>Neon CityからAbyss Bass Hallへ</span>
+            </div>
+            <div>
+              <strong>4 Leaders</strong>
+              <span>Vo / Gt / Ba / Drで違うデッキ</span>
+            </div>
+            <div>
+              <strong>Tour Mode</strong>
+              <span>デッキとレリックを引き継ぐ長編モード</span>
+            </div>
+          </div>
+          <button id="startButton" class="primary-button title-start-button">ステージ選択へ</button>
           <div class="volume-panel" aria-label="音量設定">
             <label class="volume-control" for="bgmVolume">
               <span>BGM音量 <strong id="bgmVolumeValue">30%</strong></span>
@@ -28,9 +53,9 @@
           </div>
         </div>
         <div class="guide">
-          <h2>遊び方</h2>
+          <h2>ライブの流れ</h2>
           <p>毎ターンEnergyは3、手札は5枚。カードを使い、ターン終了で敵が行動します。</p>
-          <p>Chorusが100になったら、リーダー固有の必殺演奏を好きなタイミングで発動できます。</p>
+          <p>報酬カードとレリックでデッキを育て、Chorusが100になったらリーダー固有の必殺演奏を発動できます。</p>
         </div>
       </section>
 

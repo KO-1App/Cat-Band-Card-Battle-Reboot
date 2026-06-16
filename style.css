@@ -66,20 +66,150 @@ button {
 }
 
 .title-stage {
-  min-height: 58vh;
-  padding: 26px 20px;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  padding: 10px;
   border: 3px solid var(--ink);
   background:
-    radial-gradient(circle at 78% 18%, rgba(255, 96, 153, 0.25), transparent 26%),
-    linear-gradient(155deg, #fffdf4 0%, #ffe99b 55%, #c7fbff 100%);
+    linear-gradient(150deg, #180e28 0%, #40235c 42%, #00616f 100%);
   box-shadow: var(--shadow);
 }
 
 .title-stage::before {
-  content: "🎤 🎸 🎵 🥁";
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 78, 160, 0.32), transparent 24%),
+    radial-gradient(circle at 82% 30%, rgba(41, 222, 255, 0.28), transparent 26%),
+    linear-gradient(115deg, transparent 42%, rgba(255, 239, 110, 0.16) 48%, transparent 55%);
+  pointer-events: none;
+}
+
+.title-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+.title-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 310px;
+  border: 2px solid rgba(255, 255, 255, 0.48);
+  border-radius: 8px;
+  background: #130b20;
+}
+
+.title-main-image {
   display: block;
-  margin-bottom: 40px;
-  font-size: 2.2rem;
+  width: 100%;
+  height: 100%;
+  min-height: 310px;
+  object-fit: cover;
+  object-position: center 35%;
+  filter: saturate(1.12) contrast(1.06) brightness(0.82);
+}
+
+.title-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(12, 5, 22, 0.2) 0%, rgba(12, 5, 22, 0.72) 58%, rgba(12, 5, 22, 0.94) 100%),
+    linear-gradient(90deg, rgba(15, 8, 25, 0.82), transparent 62%);
+}
+
+.title-copy {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.48), 0 0 18px rgba(255, 255, 255, 0.16);
+}
+
+.title-copy .eyebrow {
+  color: #ffe982;
+}
+
+.title-copy h1 {
+  max-width: 11ch;
+  margin-bottom: 8px;
+  font-size: clamp(2.45rem, 12vw, 4.25rem);
+}
+
+.title-copy .lead {
+  max-width: 34em;
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.title-badges {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+
+.title-badges span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid rgba(255, 255, 255, 0.76);
+  border-radius: 8px;
+  background: rgba(255, 253, 244, 0.88);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.34);
+  font-size: 1.15rem;
+}
+
+.title-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.title-feature-grid div {
+  min-width: 0;
+  padding: 8px 7px;
+  border: 2px solid rgba(255, 255, 255, 0.34);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(4px);
+}
+
+.title-feature-grid strong,
+.title-feature-grid span {
+  display: block;
+}
+
+.title-feature-grid strong {
+  color: #ffe982;
+  font-size: 0.74rem;
+  font-weight: 1000;
+}
+
+.title-feature-grid span {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.83);
+  font-size: 0.62rem;
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.title-start-button {
+  margin-top: 8px;
+  background: linear-gradient(135deg, #ff4f9b, #ffe55f);
+  color: var(--ink);
 }
 
 .eyebrow {
@@ -160,12 +290,14 @@ h3 {
 
 .volume-panel {
   display: grid;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 12px;
-  border: 2px solid rgba(48, 38, 52, 0.28);
+  gap: 10px;
+  margin-top: 9px;
+  padding: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.32);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.64);
+  color: #fff;
+  background: rgba(7, 5, 15, 0.38);
+  backdrop-filter: blur(4px);
 }
 
 .volume-control {
@@ -183,7 +315,7 @@ h3 {
 }
 
 .volume-control strong {
-  color: var(--purple);
+  color: #ffe982;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2604,6 +2736,44 @@ body.victory-shake .app {
     padding: 8px;
   }
 
+  .title-stage {
+    padding: 7px;
+  }
+
+  .title-hero {
+    min-height: 260px;
+  }
+
+  .title-main-image {
+    min-height: 260px;
+  }
+
+  .title-copy h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .title-copy .lead {
+    font-size: 0.82rem;
+    line-height: 1.32;
+  }
+
+  .title-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .title-feature-grid div {
+    padding: 5px 7px;
+  }
+
+  .title-feature-grid span {
+    display: none;
+  }
+
+  .volume-panel {
+    gap: 7px;
+    padding: 8px;
+  }
+
   .battle-screen {
     gap: 4px;
     padding-bottom: 3px;
@@ -2836,6 +3006,14 @@ body.victory-shake .app {
   .app {
     width: min(100%, 680px);
     padding: 16px;
+  }
+
+  .title-hero {
+    min-height: 390px;
+  }
+
+  .title-main-image {
+    min-height: 390px;
   }
 
   .leader-list,
