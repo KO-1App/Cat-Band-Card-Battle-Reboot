@@ -2738,7 +2738,7 @@ function completeStage() {
     nextStagePlayable: !!nextStage?.playable,
     tourUnlockedNow,
   };
-  state.resultReturnToStageSelect = true;
+  state.resultReturnToStageSelect = false;
   showStageClearResult();
 }
 
@@ -2771,8 +2771,8 @@ function showStageClearResult() {
   state.runOver = true;
   els.resultBadge.textContent = "ステージクリア";
   els.resultTitle.textContent = "ステージクリア！";
-  els.restartButton.textContent = "ステージ選択へ";
-  state.resultAction = "stageSelect";
+  els.restartButton.textContent = "タイトルへ戻る";
+  state.resultAction = "title";
   renderResultActions([]);
   const unlockText = nextStage
     ? nextStage.playable
@@ -2814,10 +2814,10 @@ function showTourStageClearResult() {
 function showTourClearResult() {
   showScreen("resultScreen");
   state.runOver = true;
-  state.resultAction = "tourRestart";
+  state.resultAction = "title";
   els.resultBadge.textContent = "Tour Mode";
   els.resultTitle.textContent = "ツアー制覇！";
-  els.restartButton.textContent = "Tour Modeをもう一度";
+  els.restartButton.textContent = "タイトルへ戻る";
   els.resultText.textContent = "Stage 1〜Stage 3を完走しました！";
   els.runSummary.innerHTML = [
     `リーダー: ${state.leader?.name || "-"}`,
@@ -2827,19 +2827,16 @@ function showTourClearResult() {
     `レリック: ${state.relics.map((r) => r.name).join(", ") || "なし"}`,
     `合計バトル: 15`,
   ].map((text) => `<span>${text}</span>`).join("");
-  renderResultActions([
-    { action: "title", label: "タイトルへ戻る" },
-    { action: "stageSelect", label: "ステージ選択へ戻る" },
-  ]);
+  renderResultActions([]);
 }
 
 function showTourFailedResult() {
   showScreen("resultScreen");
   state.runOver = true;
-  state.resultAction = "tourRestart";
+  state.resultAction = "title";
   els.resultBadge.textContent = "Tour Mode";
   els.resultTitle.textContent = "ツアー失敗";
-  els.restartButton.textContent = "Tour Modeをもう一度";
+  els.restartButton.textContent = "タイトルへ戻る";
   els.resultText.textContent = `${state.enemy?.name || "Enemy"}に押し切られました。`;
   els.runSummary.innerHTML = [
     `到達: Stage ${state.tourStageIndex + 1} / ${TOUR_STAGE_IDS.length}`,
@@ -2848,10 +2845,7 @@ function showTourFailedResult() {
     `デッキ: ${state.masterDeck.length}`,
     `レリック数: ${state.relics.length}`,
   ].map((text) => `<span>${text}</span>`).join("");
-  renderResultActions([
-    { action: "title", label: "タイトルへ戻る" },
-    { action: "stageSelect", label: "ステージ選択へ戻る" },
-  ]);
+  renderResultActions([]);
 }
 
 function loseRun() {
