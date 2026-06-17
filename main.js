@@ -137,6 +137,8 @@ const STAGES = [
     description: "まぶしいネオンが輝く、最初のライブ街。",
     unlockRequirement: null,
     boss: "Neon Void Idol",
+    banner: "assets/enemies/neon-void-idol-banner.jpg",
+    theme: "Neon / Chorus / Void Pressure",
     bgm: { normal: "neonNormal", elite: "neonNormal", midboss: "neonMiniboss", miniboss: "neonMiniboss", boss: "neonBoss" },
     playable: true,
     battles: ENCOUNTERS,
@@ -148,6 +150,8 @@ const STAGES = [
     description: "照明が落ちる危険な倉庫ライブ会場。",
     unlockRequirement: "neon_city",
     boss: "Warehouse Light Eater",
+    banner: "assets/enemies/warehouse-light-eater-banner.jpg",
+    theme: "Blackout / Flicker / Light Drain",
     bgm: { normal: "blackoutNormal", elite: "blackoutNormal", midboss: "blackoutMiniboss", miniboss: "blackoutMiniboss", boss: "blackoutBoss" },
     playable: true,
     battles: [
@@ -165,6 +169,8 @@ const STAGES = [
     description: "重低音が物理攻撃になる地下ホール。",
     unlockRequirement: "blackout_warehouse",
     boss: "Soundhole Leviathan",
+    banner: "assets/enemies/soundhole-leviathan-banner.jpg",
+    theme: "Bass Pressure / Shield Crush",
     bgm: { normal: "abyssNormal", elite: "abyssNormal", midboss: "abyssMiniboss", miniboss: "abyssMiniboss", boss: "abyssBoss" },
     playable: true,
     battles: [
@@ -885,12 +891,23 @@ function renderStageSelect() {
     const action = playable ? "開始" : stage.playable ? "未解放" : "近日追加";
     return `
       <article class="stage-card ${unlocked ? "unlocked" : "locked"} ${stage.playable ? "" : "coming-soon"}">
-        <div>
-          <p class="eyebrow">ステージ ${stage.number}</p>
-          <h3>${stage.name}</h3>
-          <p>${stage.description}</p>
-          <span class="stage-status">${status}</span>
-          <span class="stage-boss">ボス: ${stage.boss}</span>
+        <div class="stage-visual">
+          <img src="${stage.banner}" alt="${stage.name} stage banner" loading="lazy" />
+          <div class="stage-visual-label">
+            <span>Stage ${stage.number}</span>
+            <strong>${stage.name}</strong>
+          </div>
+          ${unlocked ? "" : '<div class="stage-lock-layer">LOCKED</div>'}
+        </div>
+        <div class="stage-card-body">
+          <div class="stage-card-copy">
+            <p>${stage.description}</p>
+            <span class="stage-theme">${stage.theme}</span>
+          </div>
+          <div class="stage-chip-row">
+            <span class="stage-status">${status}</span>
+            <span class="stage-boss">ボス: ${stage.boss}</span>
+          </div>
         </div>
         <button class="primary-button stage-play-button" type="button" data-stage="${stage.id}" ${playable ? "" : "disabled"}>
           ${action}
@@ -902,12 +919,23 @@ function renderStageSelect() {
   const tourAction = state.tourUnlocked ? "開始" : "未解放";
   const tourCard = `
     <article class="stage-card tour-card ${state.tourUnlocked ? "unlocked" : "locked"}">
-      <div>
-        <p class="eyebrow">特殊モード</p>
-        <h3>Tour Mode</h3>
-        <p>Stage 1〜Stage 3を、デッキ・HP・レリック引き継ぎで連続攻略。</p>
-        <span class="stage-status">${tourStatus}</span>
-        <span class="stage-boss">全15戦</span>
+      <div class="stage-visual tour-visual">
+        <img src="assets/leaders/hachiware-vo-banner.jpg" alt="Tour Mode banner" loading="lazy" />
+        <div class="stage-visual-label">
+          <span>Special Mode</span>
+          <strong>Tour Mode</strong>
+        </div>
+        ${state.tourUnlocked ? "" : '<div class="stage-lock-layer">LOCKED</div>'}
+      </div>
+      <div class="stage-card-body">
+        <div class="stage-card-copy">
+          <p>Stage 1〜Stage 3を、デッキ・HP・レリック引き継ぎで連続攻略。</p>
+          <span class="stage-theme">15 Battles / Persistent Deck / Relics</span>
+        </div>
+        <div class="stage-chip-row">
+          <span class="stage-status">${tourStatus}</span>
+          <span class="stage-boss">全15戦</span>
+        </div>
       </div>
       <button class="primary-button stage-play-button" type="button" data-tour="true" ${state.tourUnlocked ? "" : "disabled"}>
         ${tourAction}

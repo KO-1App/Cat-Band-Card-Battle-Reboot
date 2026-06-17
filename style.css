@@ -356,15 +356,87 @@ h3 {
 
 .stage-card {
   display: grid;
-  gap: 10px;
-  padding: 14px;
+  gap: 8px;
+  overflow: hidden;
+  padding: 6px;
   border: 3px solid var(--ink);
   border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(255, 96, 153, 0.16), transparent 36%),
-    linear-gradient(225deg, rgba(71, 199, 216, 0.16), transparent 42%),
-    rgba(255, 253, 244, 0.98);
+  background: #fffdf4;
   box-shadow: var(--shadow);
+}
+
+.stage-visual {
+  position: relative;
+  overflow: hidden;
+  height: clamp(118px, 20vh, 156px);
+  border: 2px solid rgba(48, 38, 52, 0.5);
+  border-radius: 7px;
+  background: #150d25;
+}
+
+.stage-visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  filter: saturate(1.1) contrast(1.04);
+}
+
+.stage-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(12, 5, 22, 0.1), rgba(12, 5, 22, 0.58)),
+    linear-gradient(90deg, rgba(12, 5, 22, 0.68), transparent 68%);
+  pointer-events: none;
+}
+
+.stage-visual-label {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 9px;
+  z-index: 2;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 255, 255, 0.24);
+}
+
+.stage-visual-label span,
+.stage-visual-label strong {
+  display: block;
+}
+
+.stage-visual-label span {
+  color: #ffe982;
+  font-size: 0.72rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.stage-visual-label strong {
+  font-size: clamp(1.35rem, 6vw, 2.1rem);
+  line-height: 1.02;
+}
+
+.stage-lock-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(0, 0, 0, 0.52);
+  font-size: 1.1rem;
+  font-weight: 1000;
+  letter-spacing: 0;
+}
+
+.stage-card-body {
+  display: grid;
+  gap: 6px;
+  padding: 2px 4px 0;
 }
 
 .stage-card h3 {
@@ -373,27 +445,47 @@ h3 {
 }
 
 .stage-card p {
-  margin-bottom: 8px;
+  margin-bottom: 0;
   color: var(--muted);
   line-height: 1.45;
 }
 
+.stage-theme {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #35264a;
+  background: #efe3ff;
+  font-size: 0.66rem;
+  font-weight: 950;
+}
+
+.stage-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
 .stage-card.locked {
-  filter: grayscale(0.7);
-  opacity: 0.62;
+  filter: grayscale(0.28);
+  opacity: 0.78;
 }
 
 .stage-card.coming-soon {
-  background:
-    linear-gradient(135deg, rgba(128, 103, 255, 0.16), transparent 38%),
-    rgba(255, 253, 244, 0.95);
+  background: rgba(255, 253, 244, 0.95);
 }
 
 .tour-card {
   background:
-    linear-gradient(135deg, rgba(248, 82, 151, 0.22), transparent 38%),
-    linear-gradient(225deg, rgba(72, 218, 232, 0.2), transparent 42%),
+    linear-gradient(135deg, rgba(248, 82, 151, 0.16), transparent 38%),
     rgba(255, 253, 244, 0.98);
+}
+
+.tour-visual img {
+  object-position: center 35%;
 }
 
 .stage-status,
@@ -401,7 +493,6 @@ h3 {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
-  margin: 0 6px 6px 0;
   padding: 4px 8px;
   border: 2px solid rgba(48, 38, 52, 0.22);
   border-radius: 999px;
