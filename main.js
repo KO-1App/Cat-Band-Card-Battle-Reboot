@@ -1140,6 +1140,7 @@ function cleanupBgmAudios(keepAudio = null) {
 
 function stopBGM() {
   audioState.bgm.fadeId += 1;
+  audioState.bgm.healthCheckId += 1;
   audioState.bgm.fading = false;
   const audio = audioState.bgm.currentAudio;
   if (audio) {
@@ -2767,6 +2768,7 @@ function completeTourStage(clearedStage) {
 function showStageClearResult() {
   const clearedStage = state.lastStageClear?.clearedStage || currentStage();
   const nextStage = state.lastStageClear?.nextStage || null;
+  stopBGM();
   showScreen("resultScreen");
   state.runOver = true;
   els.resultBadge.textContent = "ステージクリア";
@@ -2812,6 +2814,7 @@ function showTourStageClearResult() {
 }
 
 function showTourClearResult() {
+  stopBGM();
   showScreen("resultScreen");
   state.runOver = true;
   state.resultAction = "title";
@@ -2831,6 +2834,7 @@ function showTourClearResult() {
 }
 
 function showTourFailedResult() {
+  stopBGM();
   showScreen("resultScreen");
   state.runOver = true;
   state.resultAction = "title";
@@ -3207,6 +3211,7 @@ function returnToStageSelect() {
 }
 
 function showResult(victory, shouldPlayVictorySe = true) {
+  stopBGM();
   showScreen("resultScreen");
   state.runOver = true;
   state.resultAction = "title";
