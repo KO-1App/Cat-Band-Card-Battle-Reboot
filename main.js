@@ -628,6 +628,7 @@ const audioState = {
     currentType: null,
     currentAudio: null,
     previousAudios: [],
+    allAudios: new Set(),
     fading: false,
     fadeId: 0,
     requestedType: null,
@@ -986,7 +987,7 @@ function setBgmVolume(value, shouldSave = true) {
   if (els.bgmVolume) els.bgmVolume.value = String(percent);
   if (els.bgmVolumeValue) els.bgmVolumeValue.textContent = `${percent}%`;
   if (audioState.bgm.currentAudio) audioState.bgm.currentAudio.volume = audioState.bgmVolume;
-  audioState.bgm.previousAudios.forEach((audio) => {
+  audioState.bgm.allAudios.forEach((audio) => {
     audio.volume = Math.min(audio.volume, audioState.bgmVolume);
   });
   if (shouldSave) localStorage.setItem("bgmVolume", String(percent));
@@ -1030,9 +1031,11 @@ function createBgmAudio(type, volume = audioState.bgmVolume) {
   const path = BGM[type];
   if (!path) return null;
   const audio = new Audio(path);
+  audio.dataset.bgmType = type;
   audio.loop = true;
   audio.preload = "auto";
   audio.volume = volume;
+  audioState.bgm.allAudios.add(audio);
   audio.addEventListener("error", () => {
     console.warn(`[BGM] load error: ${bgmFileName(type)}`);
     clearCurrentBgmIfAudio(audio);
@@ -1105,6 +1108,17 @@ function startBgmAudio(audio, type, meta = {}, options = {}) {
   }
   console.log(bgmDebugLabel(type, meta));
   return audio.play().then(() => {
+    if (options.deferCurrent && !audioState.bgm.allAudios.has(audio)) {
+      audio.pause();
+      audio.currentTime = 0;
+      return null;
+    }
+    if (!options.deferCurrent && audioState.bgm.currentAudio !== audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audioState.bgm.allAudios.delete(audio);
+      return null;
+    }
     audioState.bgm.retryQueued = false;
     if (options.deferCurrent) {
       audioState.bgm.currentType = type;
@@ -1150,6 +1164,7 @@ function playBGM(type, meta = {}) {
     fadeToBGM(type, meta);
     return;
   }
+  cleanupBgmAudios();
   const audio = createBgmAudio(type);
   if (!audio) return;
 
@@ -1157,13 +1172,15 @@ function playBGM(type, meta = {}) {
 }
 
 function cleanupBgmAudios(keepAudio = null) {
-  const audios = [audioState.bgm.currentAudio, ...audioState.bgm.previousAudios].filter(Boolean);
+  const audios = new Set([audioState.bgm.currentAudio, ...audioState.bgm.previousAudios, ...audioState.bgm.allAudios].filter(Boolean));
   audios.forEach((audio) => {
     if (audio === keepAudio) return;
     audio.pause();
     audio.currentTime = 0;
+    audioState.bgm.allAudios.delete(audio);
   });
   audioState.bgm.previousAudios = [];
+  if (keepAudio) audioState.bgm.allAudios.add(keepAudio);
 }
 
 function stopBGM() {
@@ -1203,6 +1220,7 @@ function fadeToBGM(type, meta = {}) {
     return;
   }
 
+  cleanupBgmAudios(current);
   audioState.bgm.fading = true;
   const fadeId = audioState.bgm.fadeId + 1;
   audioState.bgm.fadeId = fadeId;
@@ -1211,7 +1229,6 @@ function fadeToBGM(type, meta = {}) {
     audioState.bgm.fading = false;
     return;
   }
-  const startVolume = current.volume;
   startBgmAudio(nextAudio, type, meta, { keepVolume: true, deferCurrent: true }).then((startedAudio) => {
     if (!startedAudio) {
       if (fadeId === audioState.bgm.fadeId) {
@@ -1224,31 +1241,34 @@ function fadeToBGM(type, meta = {}) {
     if (fadeId !== audioState.bgm.fadeId) {
       startedAudio.pause();
       startedAudio.currentTime = 0;
+      audioState.bgm.allAudios.delete(startedAudio);
+      clearCurrentBgmIfAudio(startedAudio);
       return;
     }
+    current.pause();
+    current.currentTime = 0;
+    audioState.bgm.allAudios.delete(current);
+    cleanupBgmAudios(startedAudio);
     audioState.bgm.currentType = type;
     audioState.bgm.currentAudio = startedAudio;
-    audioState.bgm.previousAudios = [current, ...audioState.bgm.previousAudios.filter((audio) => audio !== current)];
     const startedAt = performance.now();
-    const crossFade = (now) => {
+    const fadeIn = (now) => {
       if (fadeId !== audioState.bgm.fadeId || audioState.bgm.currentAudio !== startedAudio) {
         startedAudio.pause();
+        audioState.bgm.allAudios.delete(startedAudio);
         return;
       }
       const progress = Math.min(1, (now - startedAt) / BGM_FADE_MS);
-      current.volume = startVolume * (1 - progress);
       startedAudio.volume = audioState.bgmVolume * progress;
       if (progress < 1) {
-        requestAnimationFrame(crossFade);
+        requestAnimationFrame(fadeIn);
         return;
       }
-      current.pause();
-      current.currentTime = 0;
       startedAudio.volume = audioState.bgmVolume;
       audioState.bgm.fading = false;
       cleanupBgmAudios(startedAudio);
     };
-    requestAnimationFrame(crossFade);
+    requestAnimationFrame(fadeIn);
   });
 }
 
@@ -1302,6 +1322,8 @@ function debugCurrentBGM() {
     paused: audioState.bgm.currentAudio ? audioState.bgm.currentAudio.paused : null,
     ended: audioState.bgm.currentAudio ? audioState.bgm.currentAudio.ended : null,
     readyState: audioState.bgm.currentAudio ? audioState.bgm.currentAudio.readyState : null,
+    activeAudios: [...audioState.bgm.allAudios].filter((audio) => !audio.paused && !audio.ended).length,
+    trackedAudios: audioState.bgm.allAudios.size,
     fading: audioState.bgm.fading,
     retryQueued: audioState.bgm.retryQueued,
   };
