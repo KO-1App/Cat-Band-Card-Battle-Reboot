@@ -617,6 +617,7 @@ const DEFAULT_AUDIO_SETTINGS = {
 };
 
 const BGM_FADE_MS = 800;
+const BGM_READY_TIMEOUT_MS = 2500;
 
 const audioState = {
   unlocked: false,
@@ -629,6 +630,8 @@ const audioState = {
     currentAudio: null,
     previousAudios: [],
     allAudios: new Set(),
+    preloadAudios: {},
+    primed: false,
     fading: false,
     fadeId: 0,
     requestedType: null,
@@ -1020,6 +1023,7 @@ function setupAudioControls() {
 function unlockAudio() {
   if (audioState.unlocked) return;
   audioState.unlocked = true;
+  primeBgmCache();
   if (audioState.bgm.requestedType && !audioState.bgm.currentAudio) {
     fadeToBGM(audioState.bgm.requestedType, audioState.bgm.requestedMeta || {});
   } else if (document.querySelector("#titleScreen")?.classList.contains("active")) {
@@ -1027,17 +1031,12 @@ function unlockAudio() {
   }
 }
 
-function createBgmAudio(type, volume = audioState.bgmVolume) {
-  const path = BGM[type];
-  if (!path) return null;
-  const audio = new Audio(path);
+function bindBgmAudioEvents(audio, type) {
+  if (audio.dataset.bgmBound === "true") return;
+  audio.dataset.bgmBound = "true";
   audio.dataset.bgmType = type;
-  audio.loop = true;
-  audio.preload = "auto";
-  audio.volume = volume;
-  audioState.bgm.allAudios.add(audio);
   audio.addEventListener("error", () => {
-    console.warn(`[BGM] load error: ${bgmFileName(type)}`);
+    console.warn(`[BGM] load error: ${bgmFileName(audio.dataset.bgmType || type)}`);
     clearCurrentBgmIfAudio(audio);
   });
   audio.addEventListener("pause", () => {
@@ -1045,10 +1044,68 @@ function createBgmAudio(type, volume = audioState.bgmVolume) {
     if (audio.ended) return;
     window.setTimeout(() => {
       if (audioState.bgm.currentAudio === audio && audio.paused && audioState.unlocked && !audioState.bgm.fading) {
-        resumeCurrentBGM(type, audioState.bgm.requestedMeta || {});
+        resumeCurrentBGM(audio.dataset.bgmType || type, audioState.bgm.requestedMeta || {});
       }
     }, 120);
   });
+}
+
+function configureBgmAudio(audio, type, volume = audioState.bgmVolume) {
+  audio.dataset.bgmType = type;
+  audio.loop = true;
+  audio.preload = "auto";
+  audio.playsInline = true;
+  audio.volume = volume;
+  bindBgmAudioEvents(audio, type);
+  return audio;
+}
+
+function primeBgmCache() {
+  if (audioState.bgm.primed) return;
+  audioState.bgm.primed = true;
+  Object.entries(BGM).forEach(([type, path]) => {
+    if (!path || audioState.bgm.preloadAudios[type]) return;
+    const audio = configureBgmAudio(new Audio(path), type, 0);
+    audio.muted = true;
+    audioState.bgm.preloadAudios[type] = audio;
+    try {
+      audio.load();
+    } catch (error) {
+      console.warn(`[BGM] preload failed: ${bgmFileName(type)}`, error);
+    }
+    const playAttempt = audio.play();
+    if (!playAttempt || typeof playAttempt.then !== "function") return;
+    playAttempt.then(() => {
+      if (audioState.bgm.currentAudio !== audio && !audioState.bgm.allAudios.has(audio)) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      audio.muted = false;
+      audio.volume = audioState.bgm.currentAudio === audio ? audioState.bgmVolume : 0;
+    }).catch(() => {
+      audio.muted = false;
+      audio.volume = 0;
+    });
+  });
+}
+
+function createBgmAudio(type, volume = audioState.bgmVolume) {
+  const path = BGM[type];
+  if (!path) return null;
+  const cachedAudio = audioState.bgm.preloadAudios[type];
+  const audio = cachedAudio || new Audio(path);
+  if (cachedAudio) delete audioState.bgm.preloadAudios[type];
+  configureBgmAudio(audio, type, volume);
+  audio.muted = false;
+  audio.volume = volume;
+  audioState.bgm.allAudios.add(audio);
+  if (!cachedAudio) {
+    try {
+      audio.load();
+    } catch (error) {
+      console.warn(`[BGM] load failed: ${bgmFileName(type)}`, error);
+    }
+  }
   return audio;
 }
 
@@ -1101,22 +1158,63 @@ function queueBgmRetry(type, meta = {}) {
   }, { once: true });
 }
 
+function isBgmStartStale(audio, options = {}) {
+  if (options.deferCurrent) return !audioState.bgm.allAudios.has(audio);
+  return audioState.bgm.currentAudio !== audio;
+}
+
+function stopStaleBgmAudio(audio) {
+  audio.pause();
+  audio.currentTime = 0;
+  audioState.bgm.allAudios.delete(audio);
+  clearCurrentBgmIfAudio(audio);
+}
+
+function waitForBgmReady(audio, type) {
+  if (audio.readyState >= 2) return Promise.resolve(audio);
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      audio.removeEventListener("canplay", done);
+      audio.removeEventListener("loadeddata", done);
+      audio.removeEventListener("error", done);
+      resolve(audio);
+    };
+    const timer = window.setTimeout(() => {
+      console.warn(`[BGM] ready timeout, trying play anyway: ${bgmFileName(type)}`);
+      done();
+    }, BGM_READY_TIMEOUT_MS);
+    audio.addEventListener("canplay", done, { once: true });
+    audio.addEventListener("loadeddata", done, { once: true });
+    audio.addEventListener("error", done, { once: true });
+    try {
+      audio.load();
+    } catch (error) {
+      console.warn(`[BGM] ready load failed: ${bgmFileName(type)}`, error);
+      done();
+    }
+  });
+}
+
 function startBgmAudio(audio, type, meta = {}, options = {}) {
   if (!options.deferCurrent) {
     audioState.bgm.currentType = type;
     audioState.bgm.currentAudio = audio;
   }
   console.log(bgmDebugLabel(type, meta));
-  return audio.play().then(() => {
-    if (options.deferCurrent && !audioState.bgm.allAudios.has(audio)) {
-      audio.pause();
-      audio.currentTime = 0;
+  return waitForBgmReady(audio, type).then(() => {
+    if (isBgmStartStale(audio, options)) {
+      stopStaleBgmAudio(audio);
       return null;
     }
-    if (!options.deferCurrent && audioState.bgm.currentAudio !== audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      audioState.bgm.allAudios.delete(audio);
+    return audio.play();
+  }).then((playResult) => {
+    if (playResult === null) return null;
+    if (isBgmStartStale(audio, options)) {
+      stopStaleBgmAudio(audio);
       return null;
     }
     audioState.bgm.retryQueued = false;
@@ -1324,6 +1422,8 @@ function debugCurrentBGM() {
     readyState: audioState.bgm.currentAudio ? audioState.bgm.currentAudio.readyState : null,
     activeAudios: [...audioState.bgm.allAudios].filter((audio) => !audio.paused && !audio.ended).length,
     trackedAudios: audioState.bgm.allAudios.size,
+    preloadedAudios: Object.keys(audioState.bgm.preloadAudios).length,
+    primed: audioState.bgm.primed,
     fading: audioState.bgm.fading,
     retryQueued: audioState.bgm.retryQueued,
   };
