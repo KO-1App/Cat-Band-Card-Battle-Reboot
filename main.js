@@ -616,9 +616,6 @@ const DEFAULT_AUDIO_SETTINGS = {
   seVolume: 60,
 };
 
-const BGM_FADE_MS = 800;
-const BGM_READY_TIMEOUT_MS = 2500;
-
 const audioState = {
   unlocked: false,
   sounds: {},
@@ -627,19 +624,17 @@ const audioState = {
   lastSeTestAt: 0,
   bgm: {
     currentType: null,
-    currentAudio: null,
-    previousAudios: [],
-    allAudios: new Set(),
-    preloadAudios: {},
-    primed: false,
-    fading: false,
-    fadeId: 0,
     requestedType: null,
     requestedMeta: {},
     retryQueued: false,
     healthCheckId: 0,
   },
 };
+
+const bgmAudio = new Audio();
+bgmAudio.loop = true;
+bgmAudio.preload = "auto";
+bgmAudio.playsInline = true;
 
 const chorusEffects = {
   vocal: {
@@ -989,10 +984,7 @@ function setBgmVolume(value, shouldSave = true) {
   audioState.bgmVolume = percent / 100;
   if (els.bgmVolume) els.bgmVolume.value = String(percent);
   if (els.bgmVolumeValue) els.bgmVolumeValue.textContent = `${percent}%`;
-  if (audioState.bgm.currentAudio) audioState.bgm.currentAudio.volume = audioState.bgmVolume;
-  audioState.bgm.allAudios.forEach((audio) => {
-    audio.volume = Math.min(audio.volume, audioState.bgmVolume);
-  });
+  bgmAudio.volume = audioState.bgmVolume;
   if (shouldSave) localStorage.setItem("bgmVolume", String(percent));
 }
 
@@ -1020,93 +1012,37 @@ function setupAudioControls() {
   });
 }
 
+function bindSingleBgmEvents() {
+  if (bgmAudio.dataset.bgmBound === "single") return;
+  bgmAudio.dataset.bgmBound = "single";
+  bgmAudio.addEventListener("error", () => {
+    const type = audioState.bgm.requestedType || audioState.bgm.currentType;
+    console.warn(`[BGM] load error: ${type || "unknown"}`);
+    if (type) queueBgmRetry(type, audioState.bgm.requestedMeta || {});
+  });
+}
+
 function unlockAudio() {
   if (audioState.unlocked) return;
   audioState.unlocked = true;
-  primeBgmCache();
-  if (audioState.bgm.requestedType && !audioState.bgm.currentAudio) {
-    fadeToBGM(audioState.bgm.requestedType, audioState.bgm.requestedMeta || {});
-  } else if (document.querySelector("#titleScreen")?.classList.contains("active")) {
+  bindSingleBgmEvents();
+  bgmAudio.loop = true;
+  bgmAudio.preload = "auto";
+  bgmAudio.playsInline = true;
+  bgmAudio.volume = audioState.bgmVolume;
+  const requestedType = audioState.bgm.requestedType;
+  if (requestedType) {
+    playBGM(requestedType, audioState.bgm.requestedMeta || {});
+    return;
+  }
+  if (document.querySelector("#titleScreen")?.classList.contains("active")) {
     playTitleBGM();
   }
 }
 
-function bindBgmAudioEvents(audio, type) {
-  if (audio.dataset.bgmBound === "true") return;
-  audio.dataset.bgmBound = "true";
-  audio.dataset.bgmType = type;
-  audio.addEventListener("error", () => {
-    console.warn(`[BGM] load error: ${bgmFileName(audio.dataset.bgmType || type)}`);
-    clearCurrentBgmIfAudio(audio);
-  });
-  audio.addEventListener("pause", () => {
-    if (audioState.bgm.currentAudio !== audio || audioState.bgm.fading || state.runOver) return;
-    if (audio.ended) return;
-    window.setTimeout(() => {
-      if (audioState.bgm.currentAudio === audio && audio.paused && audioState.unlocked && !audioState.bgm.fading) {
-        resumeCurrentBGM(audio.dataset.bgmType || type, audioState.bgm.requestedMeta || {});
-      }
-    }, 120);
-  });
-}
-
-function configureBgmAudio(audio, type, volume = audioState.bgmVolume) {
-  audio.dataset.bgmType = type;
-  audio.loop = true;
-  audio.preload = "auto";
-  audio.playsInline = true;
-  audio.volume = volume;
-  bindBgmAudioEvents(audio, type);
-  return audio;
-}
-
-function primeBgmCache() {
-  if (audioState.bgm.primed) return;
-  audioState.bgm.primed = true;
-  Object.entries(BGM).forEach(([type, path]) => {
-    if (!path || audioState.bgm.preloadAudios[type]) return;
-    const audio = configureBgmAudio(new Audio(path), type, 0);
-    audio.muted = true;
-    audioState.bgm.preloadAudios[type] = audio;
-    try {
-      audio.load();
-    } catch (error) {
-      console.warn(`[BGM] preload failed: ${bgmFileName(type)}`, error);
-    }
-    const playAttempt = audio.play();
-    if (!playAttempt || typeof playAttempt.then !== "function") return;
-    playAttempt.then(() => {
-      if (audioState.bgm.currentAudio !== audio && !audioState.bgm.allAudios.has(audio)) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-      audio.muted = false;
-      audio.volume = audioState.bgm.currentAudio === audio ? audioState.bgmVolume : 0;
-    }).catch(() => {
-      audio.muted = false;
-      audio.volume = 0;
-    });
-  });
-}
-
-function createBgmAudio(type, volume = audioState.bgmVolume) {
-  const path = BGM[type];
-  if (!path) return null;
-  const cachedAudio = audioState.bgm.preloadAudios[type];
-  const audio = cachedAudio || new Audio(path);
-  if (cachedAudio) delete audioState.bgm.preloadAudios[type];
-  configureBgmAudio(audio, type, volume);
-  audio.muted = false;
-  audio.volume = volume;
-  audioState.bgm.allAudios.add(audio);
-  if (!cachedAudio) {
-    try {
-      audio.load();
-    } catch (error) {
-      console.warn(`[BGM] load failed: ${bgmFileName(type)}`, error);
-    }
-  }
-  return audio;
+function rememberRequestedBGM(type, meta = {}) {
+  audioState.bgm.requestedType = type;
+  audioState.bgm.requestedMeta = { ...meta };
 }
 
 function bgmFileName(type) {
@@ -1119,9 +1055,21 @@ function bgmDebugLabel(type, meta = {}) {
   return `[BGM] Stage: ${stage} / Type: ${battleType} / Track: ${bgmFileName(type)}`;
 }
 
-function rememberRequestedBGM(type, meta = {}) {
-  audioState.bgm.requestedType = type;
-  audioState.bgm.requestedMeta = { ...meta };
+function queueBgmRetry(type, meta = {}) {
+  rememberRequestedBGM(type, meta);
+  if (audioState.bgm.retryQueued) return;
+  audioState.bgm.retryQueued = true;
+  const retry = () => {
+    document.removeEventListener("pointerdown", retry);
+    document.removeEventListener("touchstart", retry);
+    document.removeEventListener("click", retry);
+    audioState.bgm.retryQueued = false;
+    const retryType = audioState.bgm.requestedType;
+    if (retryType) playBGM(retryType, audioState.bgm.requestedMeta || {});
+  };
+  document.addEventListener("pointerdown", retry, { once: true });
+  document.addEventListener("touchstart", retry, { once: true, passive: true });
+  document.addEventListener("click", retry, { once: true });
 }
 
 function scheduleBgmHealthCheck(type, meta = {}) {
@@ -1130,119 +1078,19 @@ function scheduleBgmHealthCheck(type, meta = {}) {
   window.setTimeout(() => {
     if (checkId !== audioState.bgm.healthCheckId) return;
     if (!audioState.unlocked || state.runOver || audioState.bgm.requestedType !== type) return;
-    const audio = audioState.bgm.currentAudio;
-    const wrongTrack = audioState.bgm.currentType !== type;
-    const silent = !audio || audio.paused || audio.ended || audio.readyState === 0;
+    const path = BGM[type];
+    const expectedSrc = path ? new URL(path, window.location.href).href : "";
+    const wrongTrack = audioState.bgm.currentType !== type || (expectedSrc && bgmAudio.src !== expectedSrc);
+    const silent = bgmAudio.paused || bgmAudio.ended;
     if (!wrongTrack && !silent) return;
     console.warn(`[BGM] health retry: ${bgmFileName(type)}`);
-    audioState.bgm.fading = false;
-    fadeToBGM(type, meta);
-  }, 1200);
-}
-
-function clearCurrentBgmIfAudio(audio) {
-  if (audioState.bgm.currentAudio !== audio) return;
-  audioState.bgm.currentAudio = null;
-  audioState.bgm.currentType = null;
-  audioState.bgm.fading = false;
-}
-
-function queueBgmRetry(type, meta = {}) {
-  rememberRequestedBGM(type, meta);
-  if (audioState.bgm.retryQueued) return;
-  audioState.bgm.retryQueued = true;
-  document.addEventListener("pointerdown", () => {
-    audioState.bgm.retryQueued = false;
-    const retryType = audioState.bgm.requestedType;
-    if (retryType) fadeToBGM(retryType, audioState.bgm.requestedMeta || {});
-  }, { once: true });
-}
-
-function isBgmStartStale(audio, options = {}) {
-  if (options.deferCurrent) return !audioState.bgm.allAudios.has(audio);
-  return audioState.bgm.currentAudio !== audio;
-}
-
-function stopStaleBgmAudio(audio) {
-  audio.pause();
-  audio.currentTime = 0;
-  audioState.bgm.allAudios.delete(audio);
-  clearCurrentBgmIfAudio(audio);
-}
-
-function waitForBgmReady(audio, type) {
-  if (audio.readyState >= 2) return Promise.resolve(audio);
-  return new Promise((resolve) => {
-    let settled = false;
-    const done = () => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timer);
-      audio.removeEventListener("canplay", done);
-      audio.removeEventListener("loadeddata", done);
-      audio.removeEventListener("error", done);
-      resolve(audio);
-    };
-    const timer = window.setTimeout(() => {
-      console.warn(`[BGM] ready timeout, trying play anyway: ${bgmFileName(type)}`);
-      done();
-    }, BGM_READY_TIMEOUT_MS);
-    audio.addEventListener("canplay", done, { once: true });
-    audio.addEventListener("loadeddata", done, { once: true });
-    audio.addEventListener("error", done, { once: true });
-    try {
-      audio.load();
-    } catch (error) {
-      console.warn(`[BGM] ready load failed: ${bgmFileName(type)}`, error);
-      done();
-    }
-  });
-}
-
-function startBgmAudio(audio, type, meta = {}, options = {}) {
-  if (!options.deferCurrent) {
-    audioState.bgm.currentType = type;
-    audioState.bgm.currentAudio = audio;
-  }
-  console.log(bgmDebugLabel(type, meta));
-  return waitForBgmReady(audio, type).then(() => {
-    if (isBgmStartStale(audio, options)) {
-      stopStaleBgmAudio(audio);
-      return null;
-    }
-    return audio.play();
-  }).then((playResult) => {
-    if (playResult === null) return null;
-    if (isBgmStartStale(audio, options)) {
-      stopStaleBgmAudio(audio);
-      return null;
-    }
-    audioState.bgm.retryQueued = false;
-    if (options.deferCurrent) {
-      audioState.bgm.currentType = type;
-      audioState.bgm.currentAudio = audio;
-    }
-    if (!options.keepVolume) audio.volume = audioState.bgmVolume;
-    return audio;
-  }).catch((error) => {
-    console.warn(`[BGM] ${bgmFileName(type)} could not play`, error);
-    clearCurrentBgmIfAudio(audio);
-    queueBgmRetry(type, meta);
-    return null;
-  });
-}
-
-function resumeCurrentBGM(type, meta = {}) {
-  const audio = audioState.bgm.currentAudio;
-  if (!audio) return false;
-  audio.loop = true;
-  audio.volume = audioState.bgmVolume;
-  startBgmAudio(audio, type, meta, { keepVolume: true });
-  return true;
+    playBGM(type, meta);
+  }, 900);
 }
 
 function playBGM(type, meta = {}) {
-  if (!BGM[type]) {
+  const path = BGM[type];
+  if (!path) {
     console.warn(`[BGM] missing track key: ${type}`);
     return;
   }
@@ -1252,122 +1100,48 @@ function playBGM(type, meta = {}) {
     queueBgmRetry(type, meta);
     return;
   }
-  if (audioState.bgm.currentType === type && audioState.bgm.currentAudio) {
-    if (!audioState.bgm.currentAudio.paused && !audioState.bgm.currentAudio.ended) return;
-    resumeCurrentBGM(type, meta);
+
+  bindSingleBgmEvents();
+  const nextSrc = new URL(path, window.location.href).href;
+  const sameTrack = audioState.bgm.currentType === type && bgmAudio.src === nextSrc;
+  bgmAudio.loop = true;
+  bgmAudio.preload = "auto";
+  bgmAudio.playsInline = true;
+  bgmAudio.volume = audioState.bgmVolume;
+
+  if (!sameTrack) {
+    bgmAudio.pause();
+    audioState.bgm.currentType = type;
+    bgmAudio.src = path;
+    try {
+      bgmAudio.load();
+    } catch (error) {
+      console.warn(`[BGM] load failed: ${bgmFileName(type)}`, error);
+    }
+  } else if (!bgmAudio.paused && !bgmAudio.ended) {
     return;
   }
 
-  if (audioState.bgm.currentAudio) {
-    fadeToBGM(type, meta);
-    return;
-  }
-  cleanupBgmAudios();
-  const audio = createBgmAudio(type);
-  if (!audio) return;
-
-  startBgmAudio(audio, type, meta);
-}
-
-function cleanupBgmAudios(keepAudio = null) {
-  const audios = new Set([audioState.bgm.currentAudio, ...audioState.bgm.previousAudios, ...audioState.bgm.allAudios].filter(Boolean));
-  audios.forEach((audio) => {
-    if (audio === keepAudio) return;
-    audio.pause();
-    audio.currentTime = 0;
-    audioState.bgm.allAudios.delete(audio);
+  console.log(bgmDebugLabel(type, meta));
+  bgmAudio.play().then(() => {
+    audioState.bgm.retryQueued = false;
+  }).catch((error) => {
+    console.warn(`[BGM] play failed: ${type}`, error);
+    queueBgmRetry(type, meta);
   });
-  audioState.bgm.previousAudios = [];
-  if (keepAudio) audioState.bgm.allAudios.add(keepAudio);
-}
-
-function stopBGM() {
-  audioState.bgm.fadeId += 1;
-  audioState.bgm.healthCheckId += 1;
-  audioState.bgm.fading = false;
-  const audio = audioState.bgm.currentAudio;
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-  cleanupBgmAudios();
-  audioState.bgm.currentAudio = null;
-  audioState.bgm.currentType = null;
 }
 
 function fadeToBGM(type, meta = {}) {
-  if (!BGM[type]) {
-    console.warn(`[BGM] missing track key: ${type}`);
-    return;
-  }
-  rememberRequestedBGM(type, meta);
-  scheduleBgmHealthCheck(type, meta);
-  if (!audioState.unlocked) {
-    queueBgmRetry(type, meta);
-    return;
-  }
-  if (audioState.bgm.currentType === type && audioState.bgm.currentAudio) {
-    if (!audioState.bgm.currentAudio.paused && !audioState.bgm.currentAudio.ended && !audioState.bgm.fading) return;
-    resumeCurrentBGM(type, meta);
-    return;
-  }
+  playBGM(type, meta);
+}
 
-  const current = audioState.bgm.currentAudio;
-  if (!current) {
-    playBGM(type, meta);
-    return;
-  }
-
-  cleanupBgmAudios(current);
-  audioState.bgm.fading = true;
-  const fadeId = audioState.bgm.fadeId + 1;
-  audioState.bgm.fadeId = fadeId;
-  const nextAudio = createBgmAudio(type, 0);
-  if (!nextAudio) {
-    audioState.bgm.fading = false;
-    return;
-  }
-  startBgmAudio(nextAudio, type, meta, { keepVolume: true, deferCurrent: true }).then((startedAudio) => {
-    if (!startedAudio) {
-      if (fadeId === audioState.bgm.fadeId) {
-        audioState.bgm.fading = false;
-        current.volume = audioState.bgmVolume;
-        resumeCurrentBGM(audioState.bgm.currentType || audioState.bgm.requestedType || type, audioState.bgm.requestedMeta || {});
-      }
-      return;
-    }
-    if (fadeId !== audioState.bgm.fadeId) {
-      startedAudio.pause();
-      startedAudio.currentTime = 0;
-      audioState.bgm.allAudios.delete(startedAudio);
-      clearCurrentBgmIfAudio(startedAudio);
-      return;
-    }
-    current.pause();
-    current.currentTime = 0;
-    audioState.bgm.allAudios.delete(current);
-    cleanupBgmAudios(startedAudio);
-    audioState.bgm.currentType = type;
-    audioState.bgm.currentAudio = startedAudio;
-    const startedAt = performance.now();
-    const fadeIn = (now) => {
-      if (fadeId !== audioState.bgm.fadeId || audioState.bgm.currentAudio !== startedAudio) {
-        startedAudio.pause();
-        audioState.bgm.allAudios.delete(startedAudio);
-        return;
-      }
-      const progress = Math.min(1, (now - startedAt) / BGM_FADE_MS);
-      startedAudio.volume = audioState.bgmVolume * progress;
-      if (progress < 1) {
-        requestAnimationFrame(fadeIn);
-        return;
-      }
-      startedAudio.volume = audioState.bgmVolume;
-      audioState.bgm.fading = false;
-      cleanupBgmAudios(startedAudio);
-    };
-    requestAnimationFrame(fadeIn);
-  });
+function stopBGM() {
+  audioState.bgm.healthCheckId += 1;
+  bgmAudio.pause();
+  try {
+    bgmAudio.currentTime = 0;
+  } catch (_) {}
+  audioState.bgm.currentType = null;
 }
 
 function bgmRoleForEncounter(encounter) {
@@ -1417,14 +1191,12 @@ function debugCurrentBGM() {
     file: BGM[type],
     currentType: audioState.bgm.currentType,
     requestedType: audioState.bgm.requestedType,
-    paused: audioState.bgm.currentAudio ? audioState.bgm.currentAudio.paused : null,
-    ended: audioState.bgm.currentAudio ? audioState.bgm.currentAudio.ended : null,
-    readyState: audioState.bgm.currentAudio ? audioState.bgm.currentAudio.readyState : null,
-    activeAudios: [...audioState.bgm.allAudios].filter((audio) => !audio.paused && !audio.ended).length,
-    trackedAudios: audioState.bgm.allAudios.size,
-    preloadedAudios: Object.keys(audioState.bgm.preloadAudios).length,
-    primed: audioState.bgm.primed,
-    fading: audioState.bgm.fading,
+    src: bgmAudio.src,
+    paused: bgmAudio.paused,
+    ended: bgmAudio.ended,
+    readyState: bgmAudio.readyState,
+    activeAudios: bgmAudio.paused || bgmAudio.ended ? 0 : 1,
+    trackedAudios: 1,
     retryQueued: audioState.bgm.retryQueued,
   };
 }
@@ -3525,6 +3297,7 @@ setupAudioControls();
 state.unlockedStages = loadStageUnlocks();
 state.tourUnlocked = loadTourUnlock();
 document.addEventListener("pointerdown", unlockAudio, { once: true });
+document.addEventListener("touchstart", unlockAudio, { once: true, passive: true });
+document.addEventListener("click", unlockAudio, { once: true });
 renderLeaders();
 renderStageSelect();
-playTitleBGM();
