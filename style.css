@@ -2243,6 +2243,50 @@ body.victory-shake .app {
   box-shadow: var(--shadow);
 }
 
+.relic-reward-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.relic-choice {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-height: 190px;
+  padding: 16px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff7ce, #ffffff);
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 7px 0 rgba(42, 32, 48, 0.22);
+  cursor: pointer;
+}
+
+.relic-choice:active {
+  transform: translateY(3px);
+  box-shadow: 0 4px 0 rgba(42, 32, 48, 0.22);
+}
+
+.relic-choice strong {
+  font-size: 1.08rem;
+}
+
+.relic-choice span:not(.relic-art) {
+  line-height: 1.45;
+}
+
+.relic-choice em {
+  align-self: end;
+  justify-self: start;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #ffe35a;
+  font-style: normal;
+  font-weight: 950;
+}
+
 .relic-art {
   font-size: 3rem;
 }

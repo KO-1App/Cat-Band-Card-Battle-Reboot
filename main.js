@@ -2831,6 +2831,32 @@ function chooseRelic(id) {
   startEncounter();
 }
 
+function showRelicReward() {
+  const available = RELICS.filter((relic) => !hasRelic(relic.id));
+  const choices = available.length > 0 ? pickUnique(available, Math.min(2, available.length)) : [RELICS[0]];
+  els.relicReward.innerHTML = `
+    <div class="relic-reward-options">
+      ${choices.map((relic) => `
+        <button class="relic-choice" type="button" data-relic="${relic.id}">
+          <span class="relic-art">${relic.emoji}</span>
+          <strong>${relic.name}</strong>
+          <span>${relic.text}</span>
+          <em>このレリックを選ぶ</em>
+        </button>
+      `).join("")}
+    </div>
+  `;
+  showScreen("relicRewardScreen");
+}
+
+function chooseRelic(id) {
+  const relic = RELICS.find((item) => item.id === id);
+  if (!relic) return;
+  state.relics.push(relic);
+  state.encounterIndex += 1;
+  startEncounter();
+}
+
 function pickUnique(pool, count) {
   return shuffle(pool).slice(0, count);
 }
